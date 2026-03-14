@@ -1,0 +1,7 @@
+{
+    "d_model": 128,
+    "nhead": 8,
+    "num_encoder_layers": 4,
+    "num_cross_attn_layers": 2,
+    "dropout": 0.1
+}

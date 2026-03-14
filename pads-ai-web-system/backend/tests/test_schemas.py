@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from schemas.prediction import PredictionResult, ErrorResponse
+from hypothesis import given, settings, strategies as st
+from schemas.prediction import PredictionResult, ErrorResponse, Observation, Session, SessionRecord
 
 def test_prediction_result_serialisation():
     # Verify PredictionResult serialises all 10 required fields with correct types
@@ -54,3 +55,39 @@ def test_prediction_result_missing_fields():
             task1_probabilities={"HC": 0.8, "PD": 0.2},
             # missing task2_label and others
         )
+
+
+@st.composite
+def observation_strategy(draw):
+    records = st.lists(
+        st.builds(SessionRecord,
+            device_location=st.sampled_from(["LeftWrist", "RightWrist"]),
+            channels=st.just(["w_x", "w_y", "w_z", "a_x", "a_y", "a_z"]),
+            units=st.just(["rad/s", "rad/s", "rad/s", "g", "g", "g"]),
+            file_name=st.text(min_size=1)
+        ),
+        min_size=1, max_size=3
+    )
+
+    sessions = st.lists(
+        st.builds(Session,
+            record_name=st.text(min_size=1),
+            rows=st.integers(min_value=1),
+            records=records
+        ),
+        min_size=1, max_size=3
+    )
+
+    return draw(st.builds(Observation,
+        subject_id=st.text(min_size=1),
+        sampling_rate=st.integers(min_value=1),
+        sessions=sessions
+    ))
+
+@settings(max_examples=100)
+@given(obs=observation_strategy())
+def test_observation_roundtrip_serialisation_p5(obs):
+    # Feature: pads-ai-web-system, Property 5
+    serialized = obs.to_dict()
+    parsed = Observation.from_dict(serialized)
+    assert parsed == obs

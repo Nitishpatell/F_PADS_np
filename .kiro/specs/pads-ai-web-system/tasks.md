@@ -25,8 +25,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Verify `ErrorResponse` always contains `error` and `detail` string fields
     - _Requirements: 7.1, 7.7_
 
-- [ ] 3. Signal preprocessor service
-  - [ ] 3.1 Implement `PreprocessorService` in `backend/services/preprocessor.py`
+- [x] 3. Signal preprocessor service
+  - [x] 3.1 Implement `PreprocessorService` in `backend/services/preprocessor.py`
     - `parse_observation(data: dict) -> Observation`: validate `resource_type == "observation"`, `sampling_rate > 0`, non-empty `sessions`; raise `HTTPException(422)` on failure
     - `extract_signal(obs, session, wrist) -> np.ndarray`: locate session+wrist record, read tab-separated `.txt` file via pandas, drop `Time` column → shape `(T, 6)`; raise `HTTPException(422)` if `T < 256` or session/wrist not found
     - `normalise(signal) -> np.ndarray`: per-channel z-score; set channel to `0.0` if `std == 0`
@@ -34,31 +34,31 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - `preprocess(obs, session, wrist) -> torch.Tensor`: compose above steps → `float32` tensor `(N, 256, 6)`
     - _Requirements: 1.6, 1.7, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 11.1, 11.3, 11.4, 11.5_
 
-  - [ ]* 3.2 Write property test P1: Preprocessing shape invariant
+  - [x]* 3.2 Write property test P1: Preprocessing shape invariant
     - **Property 1: Preprocessing Shape Invariant**
     - Strategy: `arrays(float32, shape=(T, 6))` where `T >= 256`; assert output shape `== (T // 256, 256, 6)`
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 1`
     - **Validates: Requirements 3.5, 4.4, 4.5**
 
-  - [ ]* 3.3 Write property test P3: Normalisation ordering preservation
+  - [x]* 3.3 Write property test P3: Normalisation ordering preservation
     - **Property 3: Normalisation Ordering Preservation**
     - Strategy: `arrays(float32, shape=(T, 6))` filtered to channels with non-zero std; assert `normalised(A) > normalised(B)` whenever `A > B`
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 3`
     - **Validates: Requirements 4.2**
 
-  - [ ]* 3.4 Write property test P4: Zero-variance channel safety
+  - [x]* 3.4 Write property test P4: Zero-variance channel safety
     - **Property 4: Zero-Variance Channel Safety**
     - Strategy: construct arrays with at least one constant column; assert no exception raised and that column is all-zero after normalisation
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 4`
     - **Validates: Requirements 4.3**
 
-  - [ ]* 3.5 Write property test P9: Insufficient signal rejection
+  - [x]* 3.5 Write property test P9: Insufficient signal rejection
     - **Property 9: Insufficient Signal Rejection**
     - Strategy: `arrays(float32, shape=(T, 6))` where `T < 256`; assert `HTTPException(422)` is raised
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 9`
     - **Validates: Requirements 3.3**
 
-  - [ ]* 3.6 Write unit tests for preprocessor in `backend/tests/test_preprocessor.py`
+  - [x]* 3.6 Write unit tests for preprocessor in `backend/tests/test_preprocessor.py`
     - Parse a known observation dict and verify `subject_id`, `sampling_rate`, `sessions` fields
     - Extract signal from known session+wrist and verify shape `(T, 6)`
     - Verify z-score normalisation produces mean ≈ 0, std ≈ 1 on a known array
@@ -67,12 +67,12 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 4.1, 4.3, 4.4, 11.3, 11.4_
 
 
-- [ ] 4. Observation round-trip serialisation
-  - [ ] 4.1 Implement `to_dict()` / `from_dict()` helpers on `Observation` dataclass
+- [x] 4. Observation round-trip serialisation
+  - [x] 4.1 Implement `to_dict()` / `from_dict()` helpers on `Observation` dataclass
     - Serialise `Observation` → JSON-compatible dict and re-parse back to `Observation`
     - _Requirements: 11.1, 11.2_
 
-  - [ ]* 4.2 Write property test P5: Observation round-trip serialisation
+  - [x]* 4.2 Write property test P5: Observation round-trip serialisation
     - **Property 5: Observation Round-Trip Serialisation**
     - Strategy: `@composite` Hypothesis strategy building random `Observation` objects with valid session lists; assert `parse(serialise(obs)) == obs`
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 5`

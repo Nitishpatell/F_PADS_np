@@ -1,0 +1,15 @@
+{
+    "executionEnvironments": [
+        {
+            "root": "pads-ai-web-system/backend",
+            "venv": ".venv",
+            "extraPaths": ["."]
+        },
+        {
+            "root": "huggingface-repo",
+            "extraPaths": ["."]
+        }
+    ],
+    "venvPath": "pads-ai-web-system/backend",
+    "venv": ".venv"
+}

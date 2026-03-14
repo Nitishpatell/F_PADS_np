@@ -1,0 +1,135 @@
+Parkinson’s Disease Smartwatch AI System
+Frontend + Backend Integration Information Resource Document
+Author: Nitish Patel Project Type: Final Year BE Research & Development Project
+1. Project Overview
+This project builds an AI‑based Parkinson’s Disease detection and monitoring system using smartwatch
+sensor data.
+The system combines:
+A trained deep learning model (best.pth)
+A medical explanation system using Gemini AI
+A web‑based frontend interface for user interaction
+The model predicts neurological condition categories using smartwatch movement signals.
+Target classes:
+Healthy Control (HC) Parkinson’s Disease (PD) Differential Diagnosis (DD)
+2. System Architecture
+The system is divided into four layers:
+Frontend (User Interface)
+Backend API
+AI Model Inference
+Gemini Medical Explanation Engine
+Architecture flow:
+User → Frontend → Backend API → AI Model → Gemini → Result Display
+3. Model Information
+Model file:
+1. 
+2. 
+3. 
+1. 
+2. 
+3. 
+4. 
+1
+best.pth
+Model type:
+Hierarchical Transformer with Cross‑Attention
+Framework:
+PyTorch
+Input:
+Smartwatch movement signals
+Sensor channels:
+Accelerometer X Accelerometer Y Accelerometer Z Gyroscope X Gyroscope Y Gyroscope Z
+Window size:
+256 time steps
+Classification tasks:
+Task 1: HC vs PD Task 2: PD vs DD
+Training method:
+5‑Fold Cross Validation
+Final exported model:
+best.pth
+4. Hugging Face Deployment
+The trained model should be uploaded to Hugging Face to host the inference model.
+Recommended repository structure:
+repository/
+model.py best.pth config.json inference.py requirements.txt README.md
+2
+Model loading example:
+import torch from model import MyModel
+model = MyModel() model.load_state_dict(torch.load("best.pth", map_location="cpu")) model.eval()
+Hugging Face will host the model for API based inference.
+5. Backend Design
+Backend handles:
+Model inference Data preprocessing Communication with Gemini Returning predictions
+Recommended framework:
+FastAPI or Flask
+Backend responsibilities:
+Receive sensor data Preprocess signals Create windows Run model inference Generate prediction Send
+prediction to Gemini Return explanation
+Example backend pipeline:
+Sensor data → preprocessing → model prediction → Gemini explanation → API response
+6. Gemini Integration
+Gemini will act as a medical explanation system.
+Purpose:
+Convert AI prediction into human readable explanation.
+Example prompt:
+"The AI model predicted Parkinson’s Disease based on smartwatch movement signals. Explain possible
+motor symptoms and suggest medical consultation steps."
+Gemini returns:
+3
+Explanation of condition Symptoms description Recommendations
+This improves system interpretability.
+7. Frontend Design
+Frontend provides user interface for doctors or researchers.
+Recommended framework:
+Streamlit (simplest)
+or
+React + Flask
+Frontend features:
+Upload smartwatch sensor file Run prediction Display classification result Show probability scores Display
+Gemini explanation Visualize sensor data
+Interface sections:
+Patient data upload Prediction results AI explanation Signal visualization
+8. Data Flow Pipeline
+Step 1
+User uploads sensor data
+Step 2
+Frontend sends data to backend API
+Step 3
+Backend preprocesses data
+Step 4
+4
+Data converted to windows
+Step 5
+Model inference executed
+Step 6
+Prediction generated
+Step 7
+Prediction sent to Gemini
+Step 8
+Gemini generates explanation
+Step 9
+Frontend displays final output
+9. Output Example
+Prediction:
+Parkinson’s Disease Detected
+Model Confidence:
+PD probability: 0.81
+Gemini Explanation:
+"The movement patterns detected by the smartwatch indicate motor symptoms commonly associated with
+Parkinson’s Disease such as tremor or bradykinesia. Clinical evaluation is recommended for confirmation."
+10. Deployment Options
+Option 1
+5
+Streamlit Web Application
+Option 2
+Hugging Face Spaces
+Option 3
+Hospital Research Dashboard
+11. Future Improvements
+Real  time  smartwatch  streaming  Mobile  application  integration  Larger  dataset  training  Explainable  AI
+visualizations Clinical validation studies
+12. Conclusion
+This system demonstrates how smartwatch sensor data combined with deep learning and generative AI can
+support early screening for Parkinson’s Disease.
+The trained model performs signal classification while Gemini provides medical context and explanation.
+Together they create an interpretable AI assisted diagnostic support system.
+6

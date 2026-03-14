@@ -26,6 +26,52 @@ class Observation:
     sampling_rate: int
     sessions: List[Session]
 
+    def to_dict(self) -> dict:
+        return {
+            "resource_type": "observation",
+            "subject_id": self.subject_id,
+            "sampling_rate": self.sampling_rate,
+            "sessions": [
+                {
+                    "record_name": s.record_name,
+                    "rows": s.rows,
+                    "records": [
+                        {
+                            "device_location": r.device_location,
+                            "channels": r.channels,
+                            "units": r.units,
+                            "file_name": r.file_name
+                        }
+                        for r in s.records
+                    ]
+                }
+                for s in self.sessions
+            ]
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Observation':
+        sessions = []
+        for s_data in data.get("sessions", []):
+            records = []
+            for r_data in s_data.get("records", []):
+                records.append(SessionRecord(
+                    device_location=r_data.get("device_location", ""),
+                    channels=r_data.get("channels", []),
+                    units=r_data.get("units", []),
+                    file_name=r_data.get("file_name", "")
+                ))
+            sessions.append(Session(
+                record_name=s_data.get("record_name", ""),
+                rows=s_data.get("rows", 0),
+                records=records
+            ))
+        return cls(
+            subject_id=data.get("subject_id", ""),
+            sampling_rate=data.get("sampling_rate", 0),
+            sessions=sessions
+        )
+
 
 @dataclass
 class PatientInfo:

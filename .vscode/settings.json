@@ -1,3 +1,9 @@
 {
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "python.defaultInterpreterPath": "${workspaceFolder}/pads-ai-web-system/backend/.venv/Scripts/python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/pads-ai-web-system/backend",
+        "${workspaceFolder}/huggingface-repo"
+    ],
+    "python.analysis.diagnosticSeverityOverrides": {}
 }

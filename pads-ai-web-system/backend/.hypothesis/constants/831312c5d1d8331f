@@ -1,0 +1,4 @@
+# file: C:\Users\BFLCOMP01\Desktop\F_PADS_np\pads-ai-web-system\backend\schemas\prediction.py
+# hypothesis_version: 6.151.9
+
+['DD', 'HC', 'LeftWrist', 'Observation', 'PD', 'RightWrist', 'channels', 'degraded', 'device_location', 'file_name', 'observation', 'ok', 'record_name', 'records', 'resource_type', 'rows', 'sampling_rate', 'sessions', 'subject_id', 'units']
