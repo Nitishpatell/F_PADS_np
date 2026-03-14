@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+torch
+numpy
+pandas
+hypothesis
+pytest
+pytest-asyncio
+httpx
+google-generativeai
+huggingface_hub
+pydantic

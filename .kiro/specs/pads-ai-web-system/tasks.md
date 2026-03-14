@@ -6,7 +6,7 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
 
 ## Tasks
 
-- [ ] 1. Project scaffolding and configuration
+- [x] 1. Project scaffolding and configuration
   - Create `pads-ai-web-system/` root with `backend/` and `frontend/` subdirectories matching the defined project structure
   - Create `backend/requirements.txt` with: `fastapi`, `uvicorn`, `python-multipart`, `torch`, `numpy`, `pandas`, `hypothesis`, `pytest`, `pytest-asyncio`, `httpx`, `google-generativeai`, `huggingface_hub`, `pydantic`
   - Create `frontend/package.json` with dependencies: `next`, `react`, `react-dom`, `tailwindcss`, `recharts`, `jest`, `@testing-library/react`, `@testing-library/jest-dom`, `typescript`
@@ -14,13 +14,13 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
   - Create `backend/.env.example` with `GEMINI_API_KEY=`, `HF_REPO_ID=`, `HF_TOKEN=`
   - _Requirements: 15.4_
 
-- [ ] 2. Backend data models and Pydantic schemas
-  - [ ] 2.1 Implement internal Python dataclasses in `backend/schemas/prediction.py`
+- [x] 2. Backend data models and Pydantic schemas
+  - [x] 2.1 Implement internal Python dataclasses in `backend/schemas/prediction.py`
     - Define `SessionRecord`, `Session`, `Observation`, `PatientInfo`, `InferenceResult` dataclasses
     - Define Pydantic schemas: `PredictionResult`, `ParseObservationResponse`, `SessionSummary`, `HealthResponse`, `ErrorResponse`
     - _Requirements: 7.1, 7.2, 7.3, 7.6, 7.7, 11.1_
 
-  - [ ]* 2.2 Write unit tests for schema serialisation
+  - [x]* 2.2 Write unit tests for schema serialisation
     - Verify `PredictionResult` serialises all 10 required fields with correct types
     - Verify `ErrorResponse` always contains `error` and `detail` string fields
     - _Requirements: 7.1, 7.7_
