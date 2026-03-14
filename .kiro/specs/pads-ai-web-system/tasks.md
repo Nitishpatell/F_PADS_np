@@ -190,28 +190,28 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - `POST /predict` with invalid session+wrist combination returns 422
     - _Requirements: 1.6, 1.7, 3.3, 5.7, 7.1, 12.1, 12.2, 14.4, 15.3_
 
-- [-] 9. Checkpoint — backend complete
+- [x] 9. Checkpoint — backend complete
   - Ensure all backend tests pass, ask the user if questions arise.
 
 
-- [ ] 10. Frontend API client and TypeScript types
-  - [ ] 10.1 Define TypeScript interfaces in `frontend/lib/types.ts`
+- [x] 10. Frontend API client and TypeScript types
+  - [x] 10.1 Define TypeScript interfaces in `frontend/lib/types.ts`
     - `PredictionResult`, `ParseObservationResponse`, `SessionSummary`, `PatientInfo`, `HealthResponse`, `ApiError`
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [ ] 10.2 Implement `frontend/lib/api.ts` typed fetch wrapper
+  - [x] 10.2 Implement `frontend/lib/api.ts` typed fetch wrapper
     - `parseObservation(file: File): Promise<ParseObservationResponse>`
     - `predict(params: PredictRequest): Promise<PredictionResult>`
     - `health(): Promise<HealthResponse>`
     - Throw structured `ApiError` (with `error` and `detail` fields) on non-2xx responses
     - _Requirements: 14.1, 14.2_
 
-- [ ] 11. Frontend layout and page shell
-  - [ ] 11.1 Implement `frontend/app/layout.tsx`
+- [x] 11. Frontend layout and page shell
+  - [x] 11.1 Implement `frontend/app/layout.tsx`
     - Set `<title>` and `<meta>` tags; import Tailwind globals
     - _Requirements: 16.4_
 
-  - [ ] 11.2 Implement `frontend/app/page.tsx` main analysis page
+  - [x] 11.2 Implement `frontend/app/page.tsx` main analysis page
     - Orchestrate state: `observationFile`, `patientFile`, `parseResult`, `selectedSession`, `selectedWrist`, `predictionResult`, `loading`, `error`
     - Call `api.health()` on mount; display warning banner if `model_loaded == false`
     - Display progress indicator within 200 ms of submit (set loading state before `await`)
@@ -219,8 +219,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Display application title and research disclaimer
     - _Requirements: 9.8, 12.4, 13.2, 16.4, 16.5_
 
-- [ ] 12. FileUpload component
-  - [ ] 12.1 Implement `frontend/components/FileUpload.tsx`
+- [x] 12. FileUpload component
+  - [x] 12.1 Implement `frontend/components/FileUpload.tsx`
     - Render drag-and-drop / click-to-upload zone with `accept=".json"`
     - Validate `.json` extension client-side; call `onFile(null)` and display `"Please upload a valid JSON file"` on invalid selection
     - Display selected filename when valid file chosen
@@ -234,8 +234,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Calls `onFile` with the file object on valid `.json` selection
     - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 13. SessionSelector component
-  - [ ] 13.1 Implement `frontend/components/SessionSelector.tsx`
+- [x] 13. SessionSelector component
+  - [x] 13.1 Implement `frontend/components/SessionSelector.tsx`
     - Render session dropdown populated from `sessions: SessionSummary[]`
     - Default to `"Relaxed"` if present, otherwise first session
     - Render LeftWrist / RightWrist radio buttons; default to `"LeftWrist"`
@@ -249,8 +249,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Displays row count for selected session+wrist
     - _Requirements: 2.1, 2.3, 2.6_
 
-- [ ] 14. SignalChart component
-  - [ ] 14.1 Implement `frontend/components/SignalChart.tsx`
+- [x] 14. SignalChart component
+  - [x] 14.1 Implement `frontend/components/SignalChart.tsx`
     - Render a single Recharts `LineChart` for one sensor channel
     - Display channel name and unit (`g` or `rad/s`) as chart label
     - Use `timeValues` for X-axis
@@ -260,14 +260,14 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Props: `channel`, `unit`, `timeValues`, `signalValues`
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.6, 16.2_
 
-  - [ ] 14.2 Wire 6 `SignalChart` instances in `page.tsx`
+  - [x] 14.2 Wire 6 `SignalChart` instances in `page.tsx`
     - Render one chart per channel after `parseResult` is available
     - Update all 6 charts when session or wrist selection changes
     - _Requirements: 8.1, 8.5_
 
 
-- [ ] 15. ResultsPanel component
-  - [ ] 15.1 Implement `frontend/components/ResultsPanel.tsx`
+- [x] 15. ResultsPanel component
+  - [x] 15.1 Implement `frontend/components/ResultsPanel.tsx`
     - Display Task 1 label (`HC` / `PD`) with colour-coded badge: green for HC, amber for PD
     - Display Task 2 label (`PD` / `DD`) with colour-coded badge
     - Display confidence scores as percentages rounded to 1 decimal place
@@ -284,8 +284,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Does not show warning when both confidences ≥ 0.5
     - _Requirements: 9.1, 9.2, 9.3, 9.6_
 
-- [ ] 16. PatientCard component
-  - [ ] 16.1 Implement `frontend/components/PatientCard.tsx`
+- [x] 16. PatientCard component
+  - [x] 16.1 Implement `frontend/components/PatientCard.tsx`
     - Display `condition` (labelled "Ground Truth (from dataset)"), `age`, `gender`, `handedness`, `height` (cm), `weight` (kg)
     - Show `"N/A"` for any missing demographic field
     - Show `"No patient file uploaded"` when `patient` is null
@@ -300,8 +300,8 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Shows `"N/A"` for missing fields
     - _Requirements: 10.1, 10.3, 10.4, 10.5_
 
-- [ ] 17. ExplanationPanel component
-  - [ ] 17.1 Implement `frontend/components/ExplanationPanel.tsx`
+- [x] 17. ExplanationPanel component
+  - [x] 17.1 Implement `frontend/components/ExplanationPanel.tsx`
     - Render explanation text in a card titled `"AI Medical Explanation"`
     - Show spinner when `loading` is true
     - Props: `explanation: string`, `loading: boolean`
@@ -312,26 +312,26 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Renders explanation text when `loading=false` and explanation is provided
     - _Requirements: 9.5_
 
-- [ ] 18. Frontend error handling and accessibility
-  - [ ] 18.1 Implement global error banner in `page.tsx`
+- [x] 18. Frontend error handling and accessibility
+  - [x] 18.1 Implement global error banner in `page.tsx`
     - Display human-readable error from API `error` field on any 4xx/5xx response
     - Display `"Network error — please check your connection and try again."` on fetch failure
     - Ensure all interactive controls have visible labels and correct `aria-label` attributes
     - Verify logical tab order: upload → session selection → submit → results
     - _Requirements: 14.1, 14.2, 16.1, 16.2, 16.3_
 
-- [ ] 19. Checkpoint — frontend complete
+- [x] 19. Checkpoint — frontend complete
   - Ensure all frontend tests pass, ask the user if questions arise.
 
-- [ ] 20. Integration wiring and end-to-end flow
-  - [ ] 20.1 Wire full predict flow in `page.tsx`
+- [x] 20. Integration wiring and end-to-end flow
+  - [x] 20.1 Wire full predict flow in `page.tsx`
     - On file upload: call `api.parseObservation()` → populate `SessionSelector` and `SignalChart` components
     - On submit: set `loading=true`, call `api.predict()`, set `predictionResult`, set `loading=false`
     - Pass `predictionResult` to `ResultsPanel` and `ExplanationPanel`
     - Pass parsed `patientInfo` to `PatientCard`
     - _Requirements: 1.5, 2.1, 2.2, 5.2, 9.1, 10.1, 13.2_
 
-  - [ ] 20.2 Wire health check banner in `page.tsx`
+  - [x] 20.2 Wire health check banner in `page.tsx`
     - Call `api.health()` on mount; if `model_loaded == false`, display persistent warning banner
     - _Requirements: 12.4_
 
