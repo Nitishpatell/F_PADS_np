@@ -3,31 +3,92 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Technical Medical Palette - High Contrast */
+  --foreground-rgb: 240, 240, 240;
+  --background-start-rgb: 10, 10, 12;
+  --background-end-rgb: 5, 5, 6;
+  
+  --accent-primary: 255, 107, 0; /* Signal Orange */
+  --accent-secondary: 0, 200, 255; /* Arctic Blue */
+  --dashboard-border: 40, 44, 52;
+  --panel-bg: rgba(18, 20, 24, 0.8);
+  
+  --font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background-color: rgb(var(--background-start-rgb));
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      radial-gradient(circle at 50% 0%, rgba(var(--accent-primary), 0.05) 0%, transparent 70%);
+    background-size: 40px 40px, 40px 40px, 100% 100%;
+    min-height: 100vh;
+    font-feature-settings: "ss01", "ss03", "cv01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect for technical feel */
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+    z-index: 100;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.3;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .technical-panel {
+    @apply bg-[var(--panel-bg)] border border-[var(--dashboard-border)] backdrop-blur-md relative overflow-hidden;
+    border-radius: 2px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  }
+  
+  .technical-panel::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  }
+
+  .accent-border {
+    @apply border-l-2 border-l-[rgb(var(--accent-primary))];
+  }
+
+  .glass-card {
+    @apply technical-panel p-6;
+  }
+  
+  .glass-input {
+    @apply bg-black/40 border border-[var(--dashboard-border)] text-white p-3 focus:border-[rgb(var(--accent-primary))] transition-all outline-none font-mono text-sm;
+    border-radius: 1px;
+  }
+
+  .accent-gradient {
+    @apply bg-gradient-to-r from-[rgb(var(--accent-primary))] to-[#ff3d00] shadow-[0_0_20px_rgba(255,107,0,0.3)];
+  }
+
+  .status-indicator {
+    @apply w-2 h-2 rounded-full inline-block mr-2;
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Animations - Technical staggered reveals */
+@keyframes tech-slide-in {
+  from { opacity: 0; transform: translateY(10px); clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0 0); }
+}
+
+.animate-tech {
+  animation: tech-slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -7,7 +7,7 @@ except (ImportError, OSError):
     HAS_TORCH = False
     
     # Dummy classes for Pyright and runtime collection
-    class nn:
+    class nn: # type: ignore
         class Module:
             def __init__(self, *args, **kwargs): pass
             def register_buffer(self, *args, **kwargs): pass
@@ -15,6 +15,7 @@ except (ImportError, OSError):
             def load_state_dict(self, *args, **kwargs): pass
             def to(self, *args, **kwargs): return self
             def __call__(self, *args, **kwargs): return (None, None)
+            def __getattr__(self, name): return self
             def size(self, *args, **kwargs): return (1,)
             @property
             def training(self): return False
@@ -24,6 +25,20 @@ except (ImportError, OSError):
             def __init__(self, *args, **kwargs): pass
         class TransformerEncoder:
             def __init__(self, *args, **kwargs): pass
+    
+    # Dummy torch for global scope
+    class torch: # type: ignore
+        @staticmethod
+        def zeros(*args, **kwargs): return None
+        @staticmethod
+        def arange(*args, **kwargs): return None
+        @staticmethod
+        def exp(*args, **kwargs): return None
+        @staticmethod
+        def sin(*args, **kwargs): return None
+        @staticmethod
+        def cos(*args, **kwargs): return None
+        float = float
 
 class TransformerEncoderPooling(nn.Module):
     def __init__(self, d_model=128, nhead=8, num_layers=4, dropout=0.1):

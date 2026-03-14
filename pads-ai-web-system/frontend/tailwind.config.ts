@@ -8,11 +8,17 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        outfit: ['var(--font-outfit)', 'Outfit', 'sans-serif'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;

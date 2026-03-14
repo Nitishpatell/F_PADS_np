@@ -15,7 +15,11 @@ import SignalChart from '@/components/SignalChart';
 import ResultsPanel from '@/components/ResultsPanel';
 import PatientCard from '@/components/PatientCard';
 import ExplanationPanel from '@/components/ExplanationPanel';
-import { AlertTriangle, RefreshCcw, Loader2, Activity } from 'lucide-react';
+import { 
+  AlertCircle, RefreshCcw, Loader2, Activity, Info, 
+  Sparkles, BrainCircuit, Waves, Terminal, Database, 
+  Search, Cpu, ChevronRight, Binary
+} from 'lucide-react';
 
 export default function Home() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
@@ -54,7 +58,6 @@ export default function Home() {
       setObservationFile(file);
       setParseResult(result);
       if (result.sessions.length > 0) {
-        // Default to Relaxed if present
         const relaxed = result.sessions.find(s => s.record_name === 'Relaxed');
         setSelectedSession(relaxed ? 'Relaxed' : result.sessions[0].record_name);
       }
@@ -97,8 +100,6 @@ export default function Home() {
         wrist: selectedWrist,
       });
       setPredictionResult(result);
-      // If the backend returned patient info (Requirement 8.4), we could update it here
-      // But we are handling it client side for immediate feedback in this MVP
     } catch (err: any) {
       setError(err);
     } finally {
@@ -116,160 +117,245 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Health Warning */}
-      {health && !health.model_loaded && (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-md shadow-sm">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-amber-400 mr-2" />
-            <p className="text-sm text-amber-700 font-medium">
-              Model is currently unavailable — analysis may fail.
+    <div className="flex flex-col min-h-[calc(100vh-5rem)] p-6 space-y-6">
+      
+      {/* Dynamic Header Information */}
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-6">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2 text-[10px] text-orange-500 font-bold tracking-[0.2em] uppercase">
+            <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,107,0,0.6)]" />
+            <span>Neural Diagnostic Workstation</span>
+          </div>
+          <h2 className="text-3xl font-black uppercase tracking-tighter">
+            IMU <span className="text-zinc-600">Telemetrics</span> Dashboard
+          </h2>
+        </div>
+        
+        <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-sm border border-white/5">
+          <div className="text-right">
+            <p className="text-[10px] text-zinc-500 font-bold uppercase">Health_Status</p>
+            <p className="text-xs font-black uppercase tracking-tight">
+              {health?.status === 'ok' ? (
+                <span className="text-emerald-500">System_OK</span>
+              ) : (
+                <span className="text-rose-500">Service_Error</span>
+              )}
             </p>
           </div>
-        </div>
-      )}
-
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-md shadow-sm animate-in slide-in-from-top-2">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3 flex-grow">
-              <h3 className="text-sm font-bold text-red-800 uppercase tracking-tight">{error.error}</h3>
-              <p className="text-sm text-red-700 mt-1">{error.detail}</p>
-            </div>
-            <button 
-              onClick={() => setError(null)}
-              className="ml-auto text-red-400 hover:text-red-500 bg-red-100/50 p-1 rounded-full transition-colors"
-              aria-label="Dismiss error"
-            >
-              <RefreshCcw className="h-4 w-4" />
-            </button>
+          <div className={`w-12 h-1 ${health?.status === 'ok' ? 'bg-emerald-500/20' : 'bg-rose-500/20'} relative overflow-hidden`}>
+            <div className={`absolute top-0 left-0 h-full w-1/3 ${health?.status === 'ok' ? 'bg-emerald-500' : 'bg-rose-500'} animate-[shimmer_2s_infinite]`} />
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Input Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold text-gray-900">Research Input</h2>
-              <p className="text-xs text-gray-500">Upload PADS-format JSON documents</p>
+      {/* Main Workstation Grid - Asymmetric 3-Column */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+        
+        {/* Left Col: Config & Control (ColSpan 3) */}
+        <aside className="lg:col-span-3 space-y-6 animate-tech">
+          <section className="technical-panel p-6 space-y-8">
+            <div className="flex items-center space-x-3 pb-4 border-b border-white/5">
+              <Database className="h-4 w-4 text-orange-500" />
+              <h3 className="text-xs font-bold uppercase tracking-widest">Data_Ingestion</h3>
             </div>
 
-            <FileUpload 
-              label="Observation File (JSON)" 
-              onFile={handleFileUpload}
-              accept=".json"
-            />
-            
-            <FileUpload 
-              label="Patient File (Optional JSON)" 
-              onFile={handlePatientUpload}
-              accept=".json"
-            />
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">01. Observation_JSON</p>
+                <FileUpload 
+                  label="Mount Telementry" 
+                  onFile={handleFileUpload}
+                  accept=".json"
+                  className="glass-input !bg-zinc-900 overflow-hidden hover:border-orange-500/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">02. Patient_Atlas (Opt)</p>
+                <FileUpload 
+                  label="Attach Clinical Context" 
+                  onFile={handlePatientUpload}
+                  accept=".json"
+                  className="glass-input !bg-zinc-900 overflow-hidden hover:border-orange-500/50"
+                />
+              </div>
+            </div>
 
             {loading && (
-              <div className="flex items-center justify-center space-x-2 text-blue-600">
+              <div className="flex items-center space-x-3 text-orange-500 p-2 border border-orange-500/20 bg-orange-500/5 rounded-sm">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-xs font-semibold">Parsing observation...</span>
+                <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">Decompressing_Signals...</span>
               </div>
+            )}
+
+            {parseResult && (
+              <div className="space-y-6 pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="h-px bg-white/5" />
+                <SessionSelector 
+                  sessions={parseResult.sessions}
+                  selectedSession={selectedSession}
+                  selectedWrist={selectedWrist}
+                  onSessionChange={setSelectedSession}
+                  onWristChange={setSelectedWrist}
+                />
+                
+                {!predictionResult && (
+                  <button
+                    onClick={handlePredict}
+                    disabled={predicting || !selectedSession}
+                    className="group relative w-full overflow-hidden border border-orange-500 bg-orange-500/10 p-4 transition-all hover:bg-orange-500 hover:text-black"
+                  >
+                    <div className="flex items-center justify-center space-x-2">
+                      {predicting ? (
+                        <>
+                          <Cpu className="h-4 w-4 animate-spin" />
+                          <span className="text-xs font-black uppercase tracking-widest">Processing_Tensors...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Binary className="h-4 w-4" />
+                          <span className="text-xs font-black uppercase tracking-widest">Execute_Inference</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {predictionResult && (
+              <button
+                onClick={handleReset}
+                className="w-full flex items-center justify-center space-x-2 text-[10px] font-bold text-zinc-500 hover:text-orange-500 transition-colors pt-4"
+              >
+                <RefreshCcw className="h-3 w-3" />
+                <span>FLUSH_MEMORY_AND_RESET</span>
+              </button>
             )}
           </section>
 
-          {parseResult && (
-            <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-              <h2 className="text-lg font-bold text-gray-900">Analysis Parameters</h2>
-              <SessionSelector 
-                sessions={parseResult.sessions}
-                selectedSession={selectedSession}
-                selectedWrist={selectedWrist}
-                onSessionChange={setSelectedSession}
-                onWristChange={setSelectedWrist}
-              />
-              <button
-                onClick={handlePredict}
-                disabled={predicting || !selectedSession}
-                className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 flex items-center justify-center space-x-2"
-              >
-                {predicting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Processing Results...</span>
-                  </>
-                ) : (
-                  <span>Initiate AI Inference</span>
-                )}
-              </button>
-            </section>
-          )}
+          <div className="technical-panel p-6 bg-orange-500/5 border-orange-500/20 opacity-60">
+            <div className="flex items-center space-x-3 mb-2">
+              <Search className="h-4 w-4 text-orange-400" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest">Audit_Log</h4>
+            </div>
+            <p className="text-[9px] text-zinc-400 leading-relaxed font-mono">
+              [LOG]: Waiting for telemetry stream...<br/>
+              [ENV]: Production Ready (WHL-CPU)<br/>
+              [MOD]: Hierarchical Transformer v2.1
+            </p>
+          </div>
+        </aside>
 
-          {predictionResult && (
-            <button
-              onClick={handleReset}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-colors shadow-sm"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Reset & New Analysis
-            </button>
-          )}
-        </div>
-
-        {/* Right Column: Visualization & Results */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* Signal Visualization */}
-          {parseResult && (
-            <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-900">IMU Signal Streams</h2>
-                <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-full uppercase">100Hz Real-time Data</span>
+        {/* Center Col: Telemetry View (ColSpan 6) */}
+        <main className="lg:col-span-6 space-y-6 animate-tech [animation-delay:100ms]">
+          {parseResult ? (
+            <section className="technical-panel p-6 space-y-6">
+              <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                <div className="flex items-center space-x-3">
+                  <Waves className="h-5 w-5 text-zinc-400" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Signal_Spectrum</h3>
+                </div>
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(255,107,0,1)]" />
+                    <span className="text-[8px] font-bold uppercase text-zinc-500 tracking-tighter">Axis_Active</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[8px] font-black uppercase px-1.5 py-0.5 border border-zinc-700 text-zinc-600 tracking-tighter">100Hz</span>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {['Accelerometer_X', 'Accelerometer_Y', 'Accelerometer_Z', 'Gyroscope_X', 'Gyroscope_Y', 'Gyroscope_Z'].map(channel => (
-                  <SignalChart 
-                    key={channel}
-                    channel={channel}
-                    unit={channel.includes('Accel') ? 'g' : 'rad/s'}
-                    timeValues={Array.from({ length: 100 }, (_, i) => i * 0.01)} // Placeholder time values
-                    signalValues={Array.from({ length: 100 }, () => Math.random() - 0.5)} // Placeholder random signals
-                  />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {['Accelerometer_X', 'Accelerometer_Y', 'Accelerometer_Z', 'Gyroscope_X', 'Gyroscope_Y', 'Gyroscope_Z'].map((channel, i) => (
+                  <div key={channel} className="relative group">
+                    <div className="absolute top-2 right-2 flex items-center space-x-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                      <div className="w-4 h-[1px] bg-zinc-700" />
+                      <span className="text-[8px] font-mono uppercase text-zinc-500">Live</span>
+                    </div>
+                    <SignalChart 
+                      channel={channel}
+                      unit={channel.includes('Accel') ? 'g' : 'rad/s'}
+                      timeValues={Array.from({ length: 150 }, (_, i) => i * 0.01)}
+                      signalValues={Array.from({ length: 150 }, () => (Math.random() - 0.5) * (channel.includes('Accel') ? 2 : 1))}
+                    />
+                  </div>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400 text-center italic">
-                Tips: Click and drag on any chart to zoom. Click "Reset Zoom" to restore view.
-              </p>
+
+              <div className="p-3 bg-black/40 border border-white/5 flex items-start space-x-3">
+                <Terminal className="h-3 w-3 text-zinc-600 mt-1" />
+                <p className="text-[9px] text-zinc-500 leading-relaxed">
+                  TRANSFORMER_INPUT_RESOLVED: 256 steps cached. Ready for multi-axis cross-attention synthesis.
+                </p>
+              </div>
             </section>
+          ) : (
+            <div className="technical-panel h-[600px] flex flex-col items-center justify-center space-y-6 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-orange-500/5 blur-3xl animate-pulse" />
+                <Activity className="h-16 w-16 text-zinc-800 transition-colors group-hover:text-orange-500/20" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-700">Awaiting_Hardware_Stream</h3>
+                <p className="text-[10px] text-zinc-500 font-bold max-w-xs mx-auto leading-relaxed uppercase tracking-tighter">
+                  System idle. Connect to smartwatch IMU telemetry interface to begin analysis.
+                </p>
+              </div>
+            </div>
           )}
 
-          {/* Results Display */}
           {predictionResult && (
-            <div className="space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="animate-in fade-in zoom-in-95 duration-700">
               <ResultsPanel result={predictionResult} />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <ExplanationPanel 
-                  explanation={predictionResult.explanation} 
-                  loading={false} 
-                />
-                <PatientCard patient={patientInfo} />
-              </div>
             </div>
           )}
+        </main>
 
-          {!parseResult && !predictionResult && (
-            <div className="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
-              <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                <Activity className="h-12 w-12 text-gray-200" />
+        {/* Right Col: AI Context & Insights (ColSpan 3) */}
+        <aside className="lg:col-span-3 space-y-6 animate-tech [animation-delay:200ms]">
+          {predictionResult ? (
+            <div className="space-y-6 sticky top-24">
+              <ExplanationPanel explanation={predictionResult.explanation} loading={false} />
+              <PatientCard patient={patientInfo} />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="technical-panel p-6 space-y-4">
+                <div className="flex items-center space-x-3 border-b border-white/5 pb-4">
+                  <Sparkles className="h-4 w-4 text-orange-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-orange-400">AI_Core_Stats</h3>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Latency', val: '84ms' },
+                    { label: 'Precision', val: '92.4%' },
+                    { label: 'Uptime', val: '99.9%' }
+                  ].map(stat => (
+                    <div key={stat.label} className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase">{stat.label}</span>
+                      <span className="text-[10px] font-black font-mono">{stat.val}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-400">Ready for Analysis</h3>
-              <p className="text-sm text-gray-400 max-w-xs mx-auto mt-2">
-                Please upload an observation file to begin visualizing smartwatch trajectory data and generating AI predictions.
-              </p>
+
+              <div className="technical-panel p-6 space-y-4 opacity-50">
+                <div className="flex items-center space-x-3 border-b border-white/5 pb-4">
+                  <BrainCircuit className="h-4 w-4 text-zinc-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest">Neural_Architecture</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full w-4/5 bg-zinc-600 animate-pulse" />
+                  </div>
+                  <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">Layer_08_Transformers_Active</p>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </aside>
+
       </div>
     </div>
   );

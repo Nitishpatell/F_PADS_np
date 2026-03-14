@@ -36,7 +36,15 @@ class InferenceService:
             
             # Load state dict
             import torch
-            self.model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True)) # type: ignore
+            checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
+            
+            # Handle nested state dict (training checkpoints often have weights under 'model_state_dict')
+            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+                state_dict = checkpoint["model_state_dict"]
+            else:
+                state_dict = checkpoint
+                
+            self.model.load_state_dict(state_dict) # type: ignore
             
             # Set to evaluation mode
             self.model.eval() # type: ignore
