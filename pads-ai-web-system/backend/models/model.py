@@ -1,5 +1,29 @@
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except (ImportError, OSError):
+    import typing
+    HAS_TORCH = False
+    
+    # Dummy classes for Pyright and runtime collection
+    class nn:
+        class Module:
+            def __init__(self, *args, **kwargs): pass
+            def register_buffer(self, *args, **kwargs): pass
+            def eval(self, *args, **kwargs): pass
+            def load_state_dict(self, *args, **kwargs): pass
+            def to(self, *args, **kwargs): return self
+            def __call__(self, *args, **kwargs): return (None, None)
+            def size(self, *args, **kwargs): return (1,)
+            @property
+            def training(self): return False
+        class Linear:
+            def __init__(self, *args, **kwargs): pass
+        class TransformerEncoderLayer:
+            def __init__(self, *args, **kwargs): pass
+        class TransformerEncoder:
+            def __init__(self, *args, **kwargs): pass
 
 class TransformerEncoderPooling(nn.Module):
     def __init__(self, d_model=128, nhead=8, num_layers=4, dropout=0.1):

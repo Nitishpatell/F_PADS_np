@@ -1,0 +1,4 @@
+# file: C:\Users\BFLCOMP01\Desktop\F_PADS_np\pads-ai-web-system\backend\routers\predict.py
+# hypothesis_version: 6.151.9
+
+[422, 500, '.json', '/health', '/parse-observation', '/predict', 'DD', 'HC', 'Invalid JSON format.', 'PD', 'degraded', 'ok']

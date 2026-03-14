@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import torch
 from fastapi import HTTPException
 from schemas.prediction import Observation
 
@@ -83,6 +82,7 @@ class PreprocessorService:
 
     @staticmethod
     def preprocess(obs: Observation, session: str, wrist: str, base_path: str = ""):
+        import torch
         signal = PreprocessorService.extract_signal(obs, session, wrist, base_path)
         normalised = PreprocessorService.normalise(signal)
         segmented = PreprocessorService.segment(normalised, window_size=256)

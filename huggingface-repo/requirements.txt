@@ -2,3 +2,4 @@ torch
 numpy
 scikit-learn
 scipy
+huggingface_hub

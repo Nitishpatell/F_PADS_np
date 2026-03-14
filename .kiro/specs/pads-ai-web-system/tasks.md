@@ -78,14 +78,14 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 5`
     - **Validates: Requirements 11.2**
 
-- [ ] 5. Hugging Face model definition and repository
-  - [ ] 5.1 Implement `HierarchicalTransformer` in `backend/models/model.py`
+- [x] 5. Hugging Face model definition and repository
+  - [x] 5.1 Implement `HierarchicalTransformer` in `backend/models/model.py`
     - Define `nn.Module` with per-window local transformer encoder, cross-attention aggregation, and two classification heads (`task1_head`, `task2_head`)
     - Accept input `(N, 256, 6)`, return `(task1_logits, task2_logits)` each shape `(N, 2)`
     - Load hyperparameters from `config.json`: `d_model=128`, `nhead=8`, `num_encoder_layers=4`, `num_cross_attn_layers=2`, `dropout=0.1`
     - _Requirements: 5.2_
 
-  - [ ] 5.2 Create Hugging Face repository files
+  - [x] 5.2 Create Hugging Face repository files
     - Create `huggingface-repo/model.py` mirroring `backend/models/model.py`
     - Create `huggingface-repo/config.json` with model hyperparameters
     - Create `huggingface-repo/inference.py` standalone helper for HF Spaces demo
@@ -94,27 +94,27 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Copy `Final results/checkpoints/best_model.pth` to `huggingface-repo/best_model.pth`
     - _Requirements: 5.1_
 
-- [ ] 6. Inference service
-  - [ ] 6.1 Implement `InferenceService` in `backend/services/inference.py`
+- [x] 6. Inference service
+  - [x] 6.1 Implement `InferenceService` in `backend/services/inference.py`
     - `__init__(repo_id, config_path)`: store config, initialise `model = None`
     - `load_model()`: download `best_model.pth` from Hugging Face Hub via `huggingface_hub.hf_hub_download`, instantiate `HierarchicalTransformer`, load state dict, set `eval()` mode
     - `is_loaded() -> bool`: return `model is not None`
     - `predict(tensor) -> InferenceResult`: run `model(tensor)` → softmax per task → mean across N windows → argmax labels; raise `HTTPException(503)` if not loaded
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
 
-  - [ ]* 6.2 Write property test P2: Probability sum invariant
+  - [x]* 6.2 Write property test P2: Probability sum invariant
     - **Property 2: Probability Sum Invariant**
     - Strategy: `arrays(float32, shape=(N, 256, 6))` where `N >= 1`; assert `abs(sum(task1_probs) - 1.0) < 1e-5` and `abs(sum(task2_probs) - 1.0) < 1e-5`
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 2`
     - **Validates: Requirements 5.3, 5.4, 7.4, 7.5**
 
-  - [ ]* 6.3 Write property test P8: Argmax label consistency
+  - [x]* 6.3 Write property test P8: Argmax label consistency
     - **Property 8: Argmax Label Consistency**
     - Strategy: generate pairs `(p_A, p_B)` where `p_A + p_B == 1.0`; assert label is first class iff `p_A > p_B`
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 8`
     - **Validates: Requirements 5.6**
 
-  - [ ]* 6.4 Write unit tests for inference service in `backend/tests/test_inference.py`
+  - [x]* 6.4 Write unit tests for inference service in `backend/tests/test_inference.py`
     - Mock model forward pass and verify `task1_probs` and `task2_probs` shapes are `[2]`
     - Verify mean aggregation across windows produces single prediction
     - Verify argmax label derivation for known probability pairs (e.g. `[0.3, 0.7]` → `"PD"`)
@@ -122,22 +122,22 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - _Requirements: 5.3, 5.4, 5.5, 5.6_
 
 
-- [ ] 7. Explanation service
-  - [ ] 7.1 Implement `ExplanationService` in `backend/services/explanation.py`
+- [x] 7. Explanation service
+  - [x] 7.1 Implement `ExplanationService` in `backend/services/explanation.py`
     - `__init__(api_key, model_name="gemini-2.0-flash")`: initialise `google.generativeai` client
     - `explain(inference_result, session) -> str`: build Gemini prompt from template (task labels, confidence scores, session, windows, low-confidence warning when confidence < 0.5); POST with `timeout=10s`; return fallback string on any exception
     - Ensure no patient identifiers (`id`, name, DOB) are included in the prompt
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-  - [ ]* 7.2 Write unit tests for explanation service in `backend/tests/test_explanation.py`
+  - [x]* 7.2 Write unit tests for explanation service in `backend/tests/test_explanation.py`
     - Mock Gemini success response → verify returned string length ≥ 50 chars
     - Mock Gemini timeout → verify fallback string is returned exactly
     - Verify low-confidence warning appears in prompt when `confidence < 0.5`
     - Verify patient `id` field is absent from the constructed prompt
     - _Requirements: 6.3, 6.4, 6.5, 6.6_
 
-- [ ] 8. FastAPI application and endpoints
-  - [ ] 8.1 Implement `backend/main.py`
+- [x] 8. FastAPI application and endpoints
+  - [x] 8.1 Implement `backend/main.py`
     - Create FastAPI app with `lifespan` context that calls `inference_service.load_model()` at startup
     - Configure CORS to allow frontend origin
     - Register `predict` router
@@ -145,17 +145,17 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - Enforce 10 MB upload limit returning HTTP 413 with `ErrorResponse`
     - _Requirements: 5.7, 14.3, 14.4, 15.1, 15.2, 15.3, 15.5_
 
-  - [ ] 8.2 Implement `GET /health` in `backend/routers/predict.py`
+  - [x] 8.2 Implement `GET /health` in `backend/routers/predict.py`
     - Return `{"status": "ok", "model_loaded": true}` when model loaded, `{"status": "degraded", "model_loaded": false}` otherwise; always HTTP 200
     - _Requirements: 12.1, 12.2, 12.3_
 
-  - [ ] 8.3 Implement `POST /parse-observation` in `backend/routers/predict.py`
+  - [x] 8.3 Implement `POST /parse-observation` in `backend/routers/predict.py`
     - Accept `multipart/form-data` with `observation_file`
     - Call `preprocessor.parse_observation()`, build `ParseObservationResponse` with session summaries (record_name, wrists, rows)
     - Return HTTP 422 `ErrorResponse` on validation failure
     - _Requirements: 1.6, 2.1, 11.1, 11.3, 11.4_
 
-  - [ ] 8.4 Implement `POST /predict` in `backend/routers/predict.py`
+  - [x] 8.4 Implement `POST /predict` in `backend/routers/predict.py`
     - Accept `multipart/form-data`: `observation_file` (required), `patient_file` (optional), `session`, `wrist`
     - Validate `resource_type` fields; call preprocessor → inference → explanation pipeline
     - Return `PredictionResult` HTTP 200 or appropriate `ErrorResponse`
@@ -180,7 +180,7 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - `@settings(max_examples=100)` — tag: `# Feature: pads-ai-web-system, Property 10`
     - **Validates: Requirements 7.1, 7.2, 7.3**
 
-  - [ ]* 8.8 Write API integration tests in `backend/tests/test_api.py`
+  - [x]* 8.8 Write API integration tests in `backend/tests/test_api.py`
     - `GET /health` returns 200 with `status` and `model_loaded` fields
     - `POST /parse-observation` with valid file returns correct session list
     - `POST /predict` with valid multipart form returns 200 with all 10 required fields
@@ -190,7 +190,7 @@ Incremental implementation of the full-stack PADS AI Web System: FastAPI backend
     - `POST /predict` with invalid session+wrist combination returns 422
     - _Requirements: 1.6, 1.7, 3.3, 5.7, 7.1, 12.1, 12.2, 14.4, 15.3_
 
-- [ ] 9. Checkpoint — backend complete
+- [-] 9. Checkpoint — backend complete
   - Ensure all backend tests pass, ask the user if questions arise.
 
 

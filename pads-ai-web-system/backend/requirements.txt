@@ -8,6 +8,6 @@ hypothesis
 pytest
 pytest-asyncio
 httpx
-google-generativeai
+google-genai
 huggingface_hub
 pydantic

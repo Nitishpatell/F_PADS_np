@@ -1,7 +1,6 @@
 import json
 import os
 import typing
-import torch
 from fastapi import HTTPException  
 from huggingface_hub import hf_hub_download
 from schemas.prediction import InferenceResult
@@ -36,6 +35,7 @@ class InferenceService:
             self.model = HierarchicalTransformer(config=self.config)
             
             # Load state dict
+            import torch
             self.model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True)) # type: ignore
             
             # Set to evaluation mode
@@ -59,6 +59,7 @@ class InferenceService:
         # Optional safeguard if assertion is missed
         assert self.model is not None
 
+        import torch
         with torch.no_grad():
             # tensor is expected to be shape (N, 256, 6)
             task1_logits, task2_logits = self.model(tensor) # type: ignore

@@ -14,8 +14,9 @@ def load_env(file_path):
     return env_vars
 
 def upload_to_huggingface():
-    # Path to the .env file in the backend directory
-    env_path = os.path.join("..", "pads-ai-web-system", "backend", ".env")
+    # Path to the .env file in the backend directory (relative to this script)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    env_path = os.path.join(script_dir, "..", "pads-ai-web-system", "backend", ".env")
     env = load_env(env_path)
     
     token = env.get("HF_TOKEN")
@@ -31,11 +32,11 @@ def upload_to_huggingface():
         
         print(f"Uploading files to Hugging Face repository: {repo_id}...")
         api.upload_folder(
-            folder_path=".", 
+            folder_path=script_dir, 
             repo_id=repo_id,
             repo_type="model",
             token=token,
-            ignore_patterns=["upload_script.py"]
+            ignore_patterns=["upload_script.py", ".venv", ".venv/**"]
         )
         print(f"\n✅ Successfully uploaded folder to https://huggingface.co/models/{repo_id}")
         
