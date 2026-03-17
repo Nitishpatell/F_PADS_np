@@ -5,7 +5,15 @@ import numpy as np
 from fastapi import HTTPException  
 from huggingface_hub import hf_hub_download
 from schemas.prediction import InferenceResult
-from models.model import HierarchicalTransformer
+
+# Optional heavy dependencies for Vercel compatibility
+try:
+    import torch
+    from models.model import HierarchicalTransformer
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+    HierarchicalTransformer = None
 
 
 class SignalAnalysisClassifier:
@@ -153,6 +161,10 @@ class InferenceService:
 
     def load_model(self):
         """Downloads the best_model.pth from HF Hub and instantiates the HierarchicalTransformer"""
+        if not HAS_TORCH:
+            print("Torch not found. Skipping neural network model loading.")
+            return
+
         if not self.repo_id:
             raise ValueError("HF_REPO_ID is not configured.")
             
@@ -160,7 +172,6 @@ class InferenceService:
             model_path = hf_hub_download(repo_id=self.repo_id, filename="best_model.pth")
             self.model = HierarchicalTransformer(config=self.config)
             
-            import torch
             checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
             
             if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
@@ -171,7 +182,9 @@ class InferenceService:
             self.model.load_state_dict(state_dict) # type: ignore
             self.model.eval() # type: ignore
         except Exception as e:
-            raise RuntimeError(f"Failed to load model from Hugging Face Hub: {str(e)}")
+            # On Vercel, we might fail due to read-only FS or other issues, 
+            # so we log but don't necessarily crash the whole app if Signal Classifier is available.
+            print(f"Failed to load neural network model: {str(e)}")
 
     def is_loaded(self) -> bool:
         return self.model is not None
@@ -187,6 +200,9 @@ class InferenceService:
             
         assert self.model is not None
         
+        if not HAS_TORCH:
+            raise HTTPException(status_code=503, detail="Neural network engine (Torch) is not available in this environment.")
+            
         import torch
         self.model.eval()
 
