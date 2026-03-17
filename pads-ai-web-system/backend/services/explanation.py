@@ -41,8 +41,8 @@ class ExplanationService:
 
         # Build the prompt
         prompt = f"""
-As a Parkinson's Disease (PD) Researcher, explain the following AI classification result from a Hierarchical Transformer model.
-The model analyzed smartwatch accelerometer and gyroscope data from a patient during a "{session_name}" activity.
+As a Parkinson's Disease (PD) Researcher, explain the following AI classification result from a Signal Analysis Classifier (Logistic Regression on biomechanical features).
+The model analyzed smartwatch accelerometer and gyroscope data from a patient during a "{session_name}" activity, extracting features like tremor power ratios, jerk RMS, and wrist asymmetry.
 
 Analysis Metadata:
 - Windows Analyzed: {inference_result.windows_analysed}

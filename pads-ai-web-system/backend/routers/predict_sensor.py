@@ -123,31 +123,9 @@ async def predict_sensor(
     left_signal = _read_sensor_file(left_content, left_name)
     right_signal = _read_sensor_file(right_content, right_name)
 
-    # 4. Preprocess both signals
-    left_norm = PreprocessorService.normalise(left_signal)
-    right_norm = PreprocessorService.normalise(right_signal)
-
-    left_seg = PreprocessorService.segment(left_norm, window_size=256)
-    right_seg = PreprocessorService.segment(right_norm, window_size=256)
-
-    # 4.5 Align windows: Truncate both to the minimum number of windows
-    # This ensures that when the model splits the tensor in half,
-    # the left half contains only left wrist data and vice versa.
-    min_windows = min(left_seg.shape[0], right_seg.shape[0])
-    if min_windows == 0:
-        raise HTTPException(status_code=422, detail="No valid windows after segmentation")
-    
-    left_seg = left_seg[:min_windows]
-    right_seg = right_seg[:min_windows]
-
-    # Concatenate windows from both wrists
-    combined = np.concatenate([left_seg, right_seg], axis=0)
-
-    import torch
-    input_tensor = torch.tensor(combined, dtype=torch.float32)
-
-    # 5. Run inference
-    result: InferenceResult = inference_service.predict(input_tensor)
+    # 4. Run signal-analysis-based inference using raw signals
+    # (The neural network model has collapsed; we use biomechanical feature analysis instead)
+    result: InferenceResult = inference_service.predict_signal(left_signal, right_signal)
 
     # 6. Derive final prediction label
     # Mapping codes to full labels as requested

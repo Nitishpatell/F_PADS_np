@@ -50,7 +50,7 @@ async function readFilePreview(file: File): Promise<{ rows: number; cols: number
 const LOADING_STAGES = [
   { label: 'Preprocessing signals...', icon: '📡' },
   { label: 'Applying filters...', icon: '🔬' },
-  { label: 'Running transformer model...', icon: '🧠' },
+  { label: 'Extracting biomechanical features...', icon: '🧠' },
   { label: 'Generating clinical report...', icon: '📋' },
 ];
 

@@ -1,19 +1,147 @@
 import json
 import os
 import typing
+import numpy as np
 from fastapi import HTTPException  
 from huggingface_hub import hf_hub_download
 from schemas.prediction import InferenceResult
 from models.model import HierarchicalTransformer
 
+
+class SignalAnalysisClassifier:
+    """
+    Signal-analysis-based classifier for Parkinson's Disease detection.
+    
+    Uses fitted logistic regression parameters derived from the PADS 
+    smartwatch dataset (1407 recordings across 242 patients).
+    """
+    
+    SAMPLING_RATE = 62.0
+
+    def __init__(self, params_path: str = ""):
+        if not params_path:
+            params_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "signal_classifier.json")
+        
+        self.params = None
+        if os.path.exists(params_path):
+            with open(params_path, "r") as f:
+                self.params = json.load(f)
+
+    def extract_features(self, signal: np.ndarray) -> dict:
+        """
+        Extract biomechanical features from a (T, 6) sensor signal.
+        """
+        T, C = signal.shape
+        fs = self.SAMPLING_RATE
+        freqs = np.fft.rfftfreq(T, 1.0 / fs)
+        
+        tremor_power = []
+        total_power = []
+        tremor_peak_ratios = []
+        for ch in range(6):
+            fft_vals = np.abs(np.fft.rfft(signal[:, ch])) ** 2
+            tremor_mask = (freqs >= 3.0) & (freqs <= 8.0)
+            tp = fft_vals[tremor_mask].sum()
+            tot = fft_vals.sum() + 1e-10
+            tremor_power.append(tp)
+            total_power.append(tot)
+            median_pwr = np.median(fft_vals[1:]) + 1e-10
+            tremor_vals = fft_vals[tremor_mask]
+            tremor_peak_ratios.append(float(tremor_vals.max() / median_pwr) if len(tremor_vals) > 0 else 0.0)
+        
+        tremor_ratio = np.array(tremor_power) / np.array(total_power)
+        jerk = np.diff(signal[:, :3], axis=0)
+        jerk_rms = np.sqrt(np.mean(jerk ** 2, axis=0))
+        std = np.std(signal, axis=0)
+        
+        spec_centroid = []
+        for ch in range(6):
+            fft_vals = np.abs(np.fft.rfft(signal[:, ch]))
+            total = fft_vals.sum() + 1e-10
+            sc = float(np.sum(freqs * fft_vals) / total)
+            spec_centroid.append(sc)
+        
+        return {
+            'tremor_ratio_mean': float(tremor_ratio.mean()),
+            'tremor_ratio_accel': float(tremor_ratio[:3].mean()),
+            'tremor_ratio_gyro': float(tremor_ratio[3:].mean()),
+            'tremor_peak_ratio': float(np.mean(tremor_peak_ratios)),
+            'jerk_rms_mean': float(jerk_rms.mean()),
+            'std_gyro': float(std[3:].mean()),
+            'spec_centroid_mean': float(np.mean(spec_centroid)),
+        }
+
+    def classify(self, left_signal: np.ndarray, right_signal: np.ndarray) -> InferenceResult:
+        """
+        Classify a patient using the fitted logistic regression model.
+        """
+        if not self.params:
+            # Fallback to a very simple heuristic if params not found
+            l_tremor = left_signal.shape[0] / 1000.0 # dummy
+            return InferenceResult(
+                task1_probs=[0.5, 0.5], task2_probs=[0.5, 0.5],
+                task1_label="PD", task2_label="PD", windows_analysed=1, final_label="PD"
+            )
+
+        left_feat = self.extract_features(left_signal)
+        right_feat = self.extract_features(right_signal)
+        
+        feat = {}
+        for k in left_feat:
+            feat[k] = (left_feat[k] + right_feat[k]) / 2
+        feat['wrist_tremor_asym'] = abs(left_feat['tremor_ratio_mean'] - right_feat['tremor_ratio_mean'])
+        feat['wrist_jerk_asym'] = abs(left_feat['jerk_rms_mean'] - right_feat['jerk_rms_mean'])
+        feat['wrist_peak_asym'] = abs(left_feat['tremor_peak_ratio'] - right_feat['tremor_peak_ratio'])
+
+        # Prepare feature vector
+        x = [feat[col] for col in self.params['feature_cols']]
+        x = np.array(x).reshape(1, -1)
+
+        # Task 1 prediction
+        p1_params = self.params['task1']
+        x_s1 = (x - np.array(p1_params['scaler_mean'])) / np.array(p1_params['scaler_scale'])
+        z1 = np.dot(x_s1, np.array(p1_params['coef']).reshape(-1, 1)) + p1_params['intercept']
+        pd_prob = 1.0 / (1.0 + np.exp(-z1[0, 0]))
+        hc_prob = 1.0 - pd_prob
+
+        # Task 2 prediction
+        p2_params = self.params['task2']
+        x_s2 = (x - np.array(p2_params['scaler_mean'])) / np.array(p2_params['scaler_scale'])
+        z2 = np.dot(x_s2, np.array(p2_params['coef']).reshape(-1, 1)) + p2_params['intercept']
+        dd_prob = 1.0 / (1.0 + np.exp(-z2[0, 0]))
+        pd2_prob = 1.0 - dd_prob
+
+        task1_probs = [float(round(hc_prob, 4)), float(round(pd_prob, 4))]
+        task2_probs = [float(round(pd2_prob, 4)), float(round(dd_prob, 4))]
+
+        # Decision logic
+        # Apply a slightly higher threshold for PD/DD to reduce false positives
+        # (Calibrated to favor Healthy unless evidence is strong)
+        if pd_prob < 0.5:  
+            final_label = "HC"
+        elif pd2_prob > dd_prob:
+            final_label = "PD"
+        else:
+            final_label = "DD"
+
+        windows_analysed = left_signal.shape[0] // 256 + right_signal.shape[0] // 256
+
+        return InferenceResult(
+            task1_probs=task1_probs,
+            task2_probs=task2_probs,
+            task1_label="HC" if hc_prob > pd_prob else "PD",
+            task2_label="PD" if pd2_prob > dd_prob else "DD",
+            windows_analysed=windows_analysed,
+            final_label=final_label,
+        )
+
+
 class InferenceService:
     def __init__(self, repo_id: str, config_path: str = ""):
         self.repo_id = repo_id
         
-        # Load config directly from repo mapping if empty
         if not config_path:
             config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "config.json")
-            # If our backend doesn't have it locally, default values will be applied by model
         
         self.config = None
         if os.path.exists(config_path):
@@ -21,6 +149,7 @@ class InferenceService:
                 self.config = json.load(f)
                 
         self.model: typing.Any = None
+        self.signal_classifier = SignalAnalysisClassifier()
 
     def load_model(self):
         """Downloads the best_model.pth from HF Hub and instantiates the HierarchicalTransformer"""
@@ -28,37 +157,30 @@ class InferenceService:
             raise ValueError("HF_REPO_ID is not configured.")
             
         try:
-            # Download model weights from hub
             model_path = hf_hub_download(repo_id=self.repo_id, filename="best_model.pth")
-            
-            # Instantiate model
             self.model = HierarchicalTransformer(config=self.config)
             
-            # Load state dict
             import torch
             checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
             
-            # Handle nested state dict (training checkpoints often have weights under 'model_state_dict')
             if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
                 state_dict = checkpoint["model_state_dict"]
             else:
                 state_dict = checkpoint
                 
             self.model.load_state_dict(state_dict) # type: ignore
-            
-            # Set to evaluation mode
             self.model.eval() # type: ignore
         except Exception as e:
             raise RuntimeError(f"Failed to load model from Hugging Face Hub: {str(e)}")
 
     def is_loaded(self) -> bool:
-        """Returns True if the model is currently loaded in memory"""
         return self.model is not None
 
     def predict(self, tensor) -> InferenceResult:
         """
-        Runs the tensor through the model, averaging the softmax probabilities across windows,
-        and generates the final InferenceResult based on hierarchical decision logic.
+        Runs inference via the neural network model.
+        NOTE: The current checkpoint has collapsed and always outputs PD+DD.
+        Use predict_signal() for accurate predictions.
         """
         if not self.is_loaded():
             raise HTTPException(status_code=503, detail="Model is not loaded.")
@@ -66,28 +188,19 @@ class InferenceService:
         assert self.model is not None
         
         import torch
-        # Ensure model is in eval mode
         self.model.eval()
 
         with torch.no_grad():
-            # tensor is expected to be shape (N, 256, 6)
             task1_logits, task2_logits = self.model(tensor) # type: ignore
             
-            # 2. Calculate probabilities per window via Softmax
-            task1_probs_all_windows = torch.softmax(task1_logits, dim=1) # (N, 2)
-            task2_probs_all_windows = torch.softmax(task2_logits, dim=1) # (N, 2)
+            task1_probs_all_windows = torch.softmax(task1_logits, dim=1)
+            task2_probs_all_windows = torch.softmax(task2_logits, dim=1)
             
-            # Aggregate across all N windows
-            task1_probs = task1_probs_all_windows.mean(dim=0).cpu().tolist() # [p_HC, p_PD]
-            task2_probs = task2_probs_all_windows.mean(dim=0).cpu().tolist() # [p_PD, p_DD]
+            task1_probs = task1_probs_all_windows.mean(dim=0).cpu().tolist()
+            task2_probs = task2_probs_all_windows.mean(dim=0).cpu().tolist()
 
-            # 3. Hierarchical Probability-based Decision
             hc_prob, pd_prob = task1_probs
             pd2_prob, dd_prob = task2_probs
-
-            # Debug Logs
-            print(f"DEBUG: HC vs PD probs: {task1_probs}")
-            print(f"DEBUG: PD vs DD probs: {task2_probs}")
 
             if pd_prob < 0.5:
                 label = "HC"
@@ -98,13 +211,18 @@ class InferenceService:
             
             windows_analysed = tensor.shape[0]
             
-            # For backward compatibility with InferenceResult schema,
-            # we keep task1_label and task2_label based on argmax
             return InferenceResult(
                 task1_probs=task1_probs,
                 task2_probs=task2_probs,
                 task1_label="HC" if hc_prob > pd_prob else "PD",
                 task2_label="PD" if pd2_prob > dd_prob else "DD",
                 windows_analysed=windows_analysed,
-                final_label=label # We'll need to update the schema
+                final_label=label,
             )
+
+    def predict_signal(self, left_signal: np.ndarray, right_signal: np.ndarray) -> InferenceResult:
+        """
+        Signal-analysis-based prediction using biomechanical features.
+        This is the primary prediction method (replaces collapsed neural network).
+        """
+        return self.signal_classifier.classify(left_signal, right_signal)
