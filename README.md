@@ -578,7 +578,7 @@ Our theme is defined by a rigorous set of HSL variables to ensure consistency ac
 
 | Token | HSL Value | Purpose |
 | :--- | :--- | :--- |
-| `--background` | `240 10% 3.9%` | Primary deep-black canvas. |
+| `--background` | `240 10% 3.9%` | Primary deep-black canvas. ||
 | `--surface` | `240 10% 7%` | Secondary containers (cards). |
 | `--surface-light` | `240 10% 12%` | Hover states and grid boundaries. |
 | `--teal` | `173 80% 40%` | Primary brand color (Medical technicality). |
