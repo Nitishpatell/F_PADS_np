@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+numpy
+pandas
+httpx
+google-genai
+huggingface_hub
+pydantic

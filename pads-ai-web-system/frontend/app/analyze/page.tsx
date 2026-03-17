@@ -288,7 +288,7 @@ export default function AnalyzePage() {
 function UploadBox({ side, fileInfo, inputRef, onFile, onClear }: {
   side: 'Left' | 'Right';
   fileInfo: FileInfo | null;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   onFile: (f: File | null) => void;
   onClear: () => void;
 }) {
