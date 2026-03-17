@@ -1,3 +1,4 @@
+// -------- Existing types (preserved) --------
 export interface SessionSummary {
   record_name: string;
   wrists: string[];
@@ -53,3 +54,54 @@ export interface PredictRequest {
   session: string;
   wrist: 'LeftWrist' | 'RightWrist';
 }
+
+// -------- NEW: Sensor Predict types --------
+
+export type DiagnosisLabel = 'HC' | 'PD' | 'DD' | "Healthy Control" | "Parkinson's Disease" | "Differential Diagnosis";
+
+export interface SensorPredictResult {
+  prediction: DiagnosisLabel;
+  confidence: number;
+  probabilities: {
+    hc_vs_pd: [number, number]; // [p_HC, p_PD]
+    pd_vs_dd: [number, number]; // [p_PD, p_DD]
+  };
+  report: string;
+  metadata: {
+    patient_id: string;
+    task: string;
+    left_file: string;
+    right_file: string;
+    windows_analysed: number;
+    left_rows: number;
+    right_rows: number;
+  };
+  signal_preview: {
+    left: number[][];
+    right: number[][];
+  };
+}
+
+export const VALID_TASKS = [
+  'CrossArms',
+  'DrinkGlas',
+  'Entrainment',
+  'HoldWeight',
+  'LiftHold',
+  'PointFinger',
+  'Relaxed',
+  'StretchHold',
+  'TouchIndex',
+  'TouchNose',
+] as const;
+
+export type TaskName = typeof VALID_TASKS[number];
+
+export const DIAGNOSIS_CONFIG: Record<DiagnosisLabel, { label: string; color: string; bgClass: string }> = {
+  HC: { label: 'Healthy Control', color: '#22C55E', bgClass: 'badge-hc' },
+  PD: { label: "Parkinson's Disease", color: '#EF4444', bgClass: 'badge-pd' },
+  DD: { label: 'Differential Diagnosis', color: '#F97316', bgClass: 'badge-dd' },
+  'Healthy Control': { label: 'Healthy Control', color: '#22C55E', bgClass: 'badge-hc' },
+  "Parkinson's Disease": { label: "Parkinson's Disease", color: '#EF4444', bgClass: 'badge-pd' },
+  'Differential Diagnosis': { label: 'Differential Diagnosis', color: '#F97316', bgClass: 'badge-dd' },
+};

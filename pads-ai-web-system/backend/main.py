@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from routers import predict
+from routers import predict, predict_sensor
 from services.inference import InferenceService
 from services.explanation import ExplanationService
 from schemas.prediction import ErrorResponse
@@ -87,6 +87,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Routers
 app.include_router(predict.router, tags=["prediction"])
+app.include_router(predict_sensor.router, tags=["sensor-prediction"])
 
 if __name__ == "__main__":
     import uvicorn

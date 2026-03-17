@@ -4,6 +4,7 @@ import {
   HealthResponse,
   ApiError,
   PredictRequest,
+  SensorPredictResult,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -55,5 +56,19 @@ export const api = {
       body: formData,
     });
     return handleResponse<PredictionResult>(response);
+  },
+
+  // NEW: Sensor-based prediction
+  async predictSensor(leftFile: File, rightFile: File, task: string): Promise<SensorPredictResult> {
+    const formData = new FormData();
+    formData.append('left_file', leftFile);
+    formData.append('right_file', rightFile);
+    formData.append('task', task);
+
+    const response = await fetch(`${API_BASE_URL}/predict-sensor`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse<SensorPredictResult>(response);
   },
 };

@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Activity, ShieldCheck, Terminal, Layers } from "lucide-react";
-
-const inter = Inter({ subsets: ["latin"], variable: '--font-sans' });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-mono' });
+import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "PADS AI | Neural Diagnostic Terminal",
-  description: "Advanced Parkinson's Disease screening workstation powered by hierarchical transformers.",
+  title: "NeuroPD — Parkinson's Detection System",
+  description: "AI-powered motion analysis using wearable sensor data for Parkinson's Disease detection.",
 };
 
 export default function RootLayout({
@@ -17,77 +13,71 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full scroll-smooth dark ${inter.variable} ${mono.variable}`}>
-      <body className="font-mono antialiased bg-black text-white selection:bg-orange-500/30">
-        <div className="relative min-h-screen flex flex-col border-x border-white/5 max-w-[1920px] mx-auto">
-          
-          {/* Dashboard Header - Sharp & Technical */}
-          <header className="sticky top-0 z-50 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-white/10 px-6">
-            <div className="flex items-center justify-between h-20">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-orange-600 p-2.5 rounded-sm shadow-[0_0_15px_rgba(234,88,12,0.4)]">
-                    <Activity className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-black tracking-tighter uppercase">PADS-AI <span className="text-orange-500">v1.0</span></h1>
-                    <div className="flex items-center space-x-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Kernel Active</span>
-                    </div>
-                  </div>
-                </div>
-
-                <nav className="hidden lg:flex items-center space-x-1 border-l border-white/10 pl-6 h-10">
-                  {['Dashboard', 'Telemetry', 'Neural Stats', 'Archive'].map((item) => (
-                    <button key={item} className="px-4 py-2 text-[10px] font-bold text-zinc-500 hover:text-white hover:bg-white/5 transition-all uppercase tracking-widest rounded-sm">
-                      {item}
-                    </button>
-                  ))}
-                </nav>
+    <html lang="en" className="h-full scroll-smooth dark">
+      <body className="antialiased min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-50 glass border-b border-[var(--border)]">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-9 h-9 rounded-lg bg-[var(--teal)] flex items-center justify-center shadow-[0_0_15px_-3px_rgba(13,148,136,0.5)] group-hover:shadow-[0_0_25px_-3px_rgba(13,148,136,0.7)] transition-shadow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
               </div>
-
-              <div className="flex items-center space-x-4">
-                <div className="hidden xl:flex flex-col items-end mr-4">
-                  <span className="text-[10px] text-zinc-500 font-bold uppercase">Workstation_ID</span>
-                  <span className="text-xs font-bold font-mono">BFL-PADS-01</span>
-                </div>
-                <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-sm transition-all group">
-                  <ShieldCheck className="h-4 w-4 text-orange-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Medical Auth</span>
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-grow flex flex-col overflow-x-hidden">
-            <div className="flex-grow w-full">
-              {children}
-            </div>
-          </main>
-
-          <footer className="border-t border-white/5 bg-[#050506] p-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2 opacity-50">
-                  <Terminal className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Diagnostic Console</span>
-                </div>
-                <div className="flex items-center space-x-2 opacity-50">
-                  <Layers className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Multi-Layer Inference</span>
-                </div>
-              </div>
-              
-              <div className="text-center md:text-right">
-                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest leading-loose">
-                  Neural assets encrypted. (c) 2026 PADS AI Division.<br/>
-                  Qualified Research Access Only. Standard protocol 81-b applied.
+              <div>
+                <h1 className="text-base font-bold tracking-tight text-white">
+                  Neuro<span className="text-[var(--teal-light)]">PD</span>
+                </h1>
+                <p className="text-[10px] text-[var(--text-muted)] font-medium tracking-wider uppercase">
+                  Detection System
                 </p>
               </div>
+            </Link>
+
+            <nav className="hidden md:flex items-center space-x-1">
+              <Link href="/" className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                Home
+              </Link>
+              <Link href="/analyze" className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                Analyze
+              </Link>
+            </nav>
+
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[var(--surface-light)] border border-[var(--border)]">
+                <span className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
+                <span className="text-xs font-medium text-[var(--text-secondary)]">AI Model Active</span>
+              </div>
             </div>
-          </footer>
-        </div>
+          </div>
+        </header>
+
+        {/* Main */}
+        <main className="flex-grow">
+          {children}
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-[var(--border)] bg-[var(--navy-dark)]">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 rounded bg-[var(--teal)] flex items-center justify-center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold text-[var(--text-secondary)]">NeuroPD</span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] text-center">
+                © 2026 NeuroPD — AI-Powered Parkinson&apos;s Detection. For research and clinical use only.
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">
+                Transformer Model v1.0 • PADS Dataset
+              </p>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );

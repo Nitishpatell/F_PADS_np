@@ -90,6 +90,7 @@ class InferenceResult:
     task1_label: str           # "HC" | "PD"
     task2_label: str           # "PD" | "DD"
     windows_analysed: int
+    final_label: str           # "HC" | "PD" | "DD"
 
 
 # API Pydantic Schemas

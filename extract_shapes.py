@@ -1,4 +1,9 @@
-import torch
+try:
+    import torch
+except (ImportError, OSError):
+    class torch:
+        @staticmethod
+        def load(*args, **kwargs): raise ImportError("torch not installed")
 import os
 
 model_path = "pads-ai-web-system/backend/best_model.pth"

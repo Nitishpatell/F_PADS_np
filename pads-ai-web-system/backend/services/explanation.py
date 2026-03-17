@@ -64,6 +64,9 @@ Do NOT mention any specific patient names or IDs.
 """
 
         try:
+            if self.client is None or not hasattr(self.client, 'models'):
+                return self._get_fallback_explanation(inference_result, session_name, "Gemini Client not initialized or invalid.")
+                
             # Generate content
             response = self.client.models.generate_content(
                 model=self.model_name,

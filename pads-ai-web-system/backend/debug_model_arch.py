@@ -32,9 +32,10 @@ for model_path in model_paths:
             else:
                 sd = checkpoint
             print(f"Checkpoint Keys (Total: {len(sd.keys())}):")
-            keys = sorted(list(sd.keys()))
-            for k in keys[:10]:
-                print(k)
+            sd_keys = list(sd.keys())
+            keys = sorted(sd_keys)
+            for i in range(min(10, len(keys))):
+                print(keys[i])
             
             # Check for window_layers specific keys
             has_window_layers = any("window_layers" in k for k in sd.keys())

@@ -58,21 +58,22 @@ class InferenceService:
     def predict(self, tensor) -> InferenceResult:
         """
         Runs the tensor through the model, averaging the softmax probabilities across windows,
-        and generates the final InferenceResult.
+        and generates the final InferenceResult based on hierarchical decision logic.
         """
-        
         if not self.is_loaded():
             raise HTTPException(status_code=503, detail="Model is not loaded.")
             
-        # Optional safeguard if assertion is missed
         assert self.model is not None
-
+        
         import torch
+        # Ensure model is in eval mode
+        self.model.eval()
+
         with torch.no_grad():
             # tensor is expected to be shape (N, 256, 6)
             task1_logits, task2_logits = self.model(tensor) # type: ignore
             
-            # Calculate probabilities per window via Softmax
+            # 2. Calculate probabilities per window via Softmax
             task1_probs_all_windows = torch.softmax(task1_logits, dim=1) # (N, 2)
             task2_probs_all_windows = torch.softmax(task2_logits, dim=1) # (N, 2)
             
@@ -80,16 +81,30 @@ class InferenceService:
             task1_probs = task1_probs_all_windows.mean(dim=0).cpu().tolist() # [p_HC, p_PD]
             task2_probs = task2_probs_all_windows.mean(dim=0).cpu().tolist() # [p_PD, p_DD]
 
-            # Argmax Labels
-            task1_label = "HC" if task1_probs[0] > task1_probs[1] else "PD"
-            task2_label = "PD" if task2_probs[0] > task2_probs[1] else "DD"
+            # 3. Hierarchical Probability-based Decision
+            hc_prob, pd_prob = task1_probs
+            pd2_prob, dd_prob = task2_probs
+
+            # Debug Logs
+            print(f"DEBUG: HC vs PD probs: {task1_probs}")
+            print(f"DEBUG: PD vs DD probs: {task2_probs}")
+
+            if pd_prob < 0.5:
+                label = "HC"
+            elif pd2_prob > dd_prob:
+                label = "PD"
+            else:
+                label = "DD"
             
             windows_analysed = tensor.shape[0]
             
+            # For backward compatibility with InferenceResult schema,
+            # we keep task1_label and task2_label based on argmax
             return InferenceResult(
                 task1_probs=task1_probs,
                 task2_probs=task2_probs,
-                task1_label=task1_label,
-                task2_label=task2_label,
-                windows_analysed=windows_analysed
+                task1_label="HC" if hc_prob > pd_prob else "PD",
+                task2_label="PD" if pd2_prob > dd_prob else "DD",
+                windows_analysed=windows_analysed,
+                final_label=label # We'll need to update the schema
             )
