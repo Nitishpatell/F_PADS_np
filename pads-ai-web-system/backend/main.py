@@ -46,7 +46,8 @@ app = FastAPI(
     title="PADS AI Web System API",
     description="Backend for Parkinson's Disease classification from smartwatch sensor data.",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    root_path="/api" if os.getenv("VERCEL") else ""
 )
 
 # CORS
