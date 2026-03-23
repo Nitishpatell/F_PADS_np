@@ -91,6 +91,7 @@ class InferenceResult:
     task2_label: str           # "PD" | "DD"
     windows_analysed: int
     final_label: str           # "HC" | "PD" | "DD"
+    features: Optional[dict] = None
 
 
 # API Pydantic Schemas

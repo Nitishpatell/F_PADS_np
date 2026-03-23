@@ -149,25 +149,13 @@ async def predict_sensor(
     explanation = explanation_service.explain(result, task)
 
     # 8. Build response matching user request and frontend needs
+
     return {
-        "prediction": prediction_label,
+        "diagnosis": prediction_label,
         "confidence": round(confidence, 4),
-        "probabilities": {
-            "hc_vs_pd": [round(p, 4) for p in result.task1_probs],
-            "pd_vs_dd": [round(p, 4) for p in result.task2_probs],
-        },
-        "report": explanation,
-        "metadata": {
-            "patient_id": left_pid,
-            "task": task,
-            "left_file": left_name,
-            "right_file": right_name,
-            "windows_analysed": result.windows_analysed,
-            "left_rows": left_signal.shape[0],
-            "right_rows": right_signal.shape[0],
-        },
-        "signal_preview": {
-            "left": left_signal[:500].tolist(),
-            "right": right_signal[:500].tolist(),
-        },
+        "hc_prob": round(result.task1_probs[0], 4),
+        "pd_prob": round(result.task1_probs[1], 4),
+        "dd_prob": round(result.task2_probs[1], 4),
+        "features": result.features,
+        "gemini_report": explanation
     }

@@ -6,6 +6,28 @@ from fastapi import HTTPException
 from huggingface_hub import hf_hub_download
 from schemas.prediction import InferenceResult
 
+def extract_features(signal):
+    try:
+        import numpy as np
+        fft_vals = np.abs(np.fft.rfft(signal[:, 0]))
+        freqs = np.fft.rfftfreq(len(signal), d=1/64)
+        tremor_band = (freqs >= 3) & (freqs <= 8)
+        tremor_power = float(np.mean(fft_vals[tremor_band]))
+        jerk = np.diff(signal, axis=0)
+        jerk_rms = float(np.sqrt(np.mean(jerk**2)))
+        std_dev = float(np.mean(np.std(signal, axis=0)))
+        return {
+            "tremor_power": round(tremor_power, 4),
+            "jerk_rms": round(jerk_rms, 4),
+            "std_dev": round(std_dev, 4)
+        }
+    except Exception as e:
+        return {
+            "tremor_power": 0.0,
+            "jerk_rms": 0.0,
+            "std_dev": 0.0
+        }
+
 # Optional heavy dependencies for Vercel compatibility
 try:
     import torch
@@ -133,6 +155,8 @@ class SignalAnalysisClassifier:
             final_label = "DD"
 
         windows_analysed = left_signal.shape[0] // 256 + right_signal.shape[0] // 256
+        
+        extracted_features = extract_features(left_signal)
 
         return InferenceResult(
             task1_probs=task1_probs,
@@ -141,6 +165,7 @@ class SignalAnalysisClassifier:
             task2_label="PD" if pd2_prob > dd_prob else "DD",
             windows_analysed=windows_analysed,
             final_label=final_label,
+            features=extracted_features,
         )
 
 
