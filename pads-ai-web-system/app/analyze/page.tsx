@@ -54,6 +54,9 @@ const LOADING_STAGES = [
   { label: 'Generating clinical report...', icon: '📋' },
 ];
 
+// ---- File size warning threshold: 25 MB ----
+const FILE_SIZE_WARNING_MB = 25;
+
 export default function AnalyzePage() {
   const router = useRouter();
   const leftInputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +69,8 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const [largeFileWarning, setLargeFileWarning] = useState<string | null>(null);
 
   // ---- File handlers ----
   const handleFileDrop = useCallback(async (side: 'Left' | 'Right', file: File | null) => {
@@ -73,6 +78,14 @@ export default function AnalyzePage() {
       if (side === 'Left') setLeftFile(null);
       else setRightFile(null);
       return;
+    }
+
+    // Large file warning
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > FILE_SIZE_WARNING_MB) {
+      setLargeFileWarning(`${side} file is ${sizeMB.toFixed(1)} MB — larger files may take longer to process.`);
+    } else {
+      setLargeFileWarning(null);
     }
 
     const parsed = parseFileName(file.name);
@@ -167,6 +180,41 @@ export default function AnalyzePage() {
           </p>
         </div>
 
+        {/* File Naming Guide toggle */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+          <button
+            onClick={() => setShowGuide((prev) => !prev)}
+            className="flex items-center space-x-2 text-sm text-[var(--teal-light)] hover:text-white transition-colors mx-auto"
+            id="file-guide-toggle"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span>{showGuide ? 'Hide' : 'How should I name my files?'}</span>
+          </button>
+
+          {showGuide && (
+            <div className="file-guide mt-3 max-w-xl mx-auto">
+              <p className="font-semibold text-white text-sm">Required filename format:</p>
+              <code className="block bg-[var(--navy-dark)] rounded-lg px-4 py-2 text-[var(--teal-light)] text-xs font-mono mt-1">
+                {'{PatientID}_{Task}_{Side}Wrist.{ext}'}
+              </code>
+              <div className="space-y-1 text-xs mt-2">
+                <p>• <span className="text-white font-medium">PatientID</span> — a number, e.g. <code className="text-[var(--teal-light)]">035</code></p>
+                <p>• <span className="text-white font-medium">Task</span> — one of the 10 supported tasks, e.g. <code className="text-[var(--teal-light)]">TouchNose</code></p>
+                <p>• <span className="text-white font-medium">Side</span> — either <code className="text-[var(--teal-light)]">LeftWrist</code> or <code className="text-[var(--teal-light)]">RightWrist</code></p>
+                <p>• <span className="text-white font-medium">Extension</span> — <code className="text-[var(--teal-light)]">.txt</code> or <code className="text-[var(--teal-light)]">.csv</code></p>
+              </div>
+              <p className="text-xs mt-2 border-t border-[var(--border)] pt-2">
+                <span className="text-white font-medium">Example:</span>{' '}
+                <code className="text-[var(--teal-light)]">035_TouchNose_LeftWrist.txt</code>
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Upload Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           {/* Left Wrist */}
@@ -187,6 +235,14 @@ export default function AnalyzePage() {
             onClear={() => { setRightFile(null); setErrors(prev => prev.filter(e => !e.includes('Right'))); }}
           />
         </div>
+
+        {/* Large file warning */}
+        {largeFileWarning && (
+          <div className="rounded-xl bg-[var(--warning)]/10 border border-[var(--warning)]/30 p-3 flex items-center space-x-2 animate-fade-in">
+            <span className="text-[var(--warning)]">⚠</span>
+            <span className="text-sm text-[var(--warning)]">{largeFileWarning}</span>
+          </div>
+        )}
 
         {/* Task Selection */}
         <div className="card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
@@ -241,8 +297,37 @@ export default function AnalyzePage() {
 
         {/* Loading */}
         {loading && (
-          <div className="card space-y-4 animate-fade-in">
-            <h3 className="text-sm font-semibold text-white">Processing...</h3>
+          <div className="card space-y-6 animate-fade-in">
+            <h3 className="text-sm font-semibold text-white">Processing Analysis...</h3>
+
+            {/* Stage dots progress */}
+            <div className="flex items-center justify-between mb-2">
+              {LOADING_STAGES.map((_, i) => (
+                <div key={i} className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
+                      i < loadingStage
+                        ? 'border-[var(--success)] bg-[var(--success)]/20 text-[var(--success)]'
+                        : i === loadingStage
+                        ? 'border-[var(--teal)] bg-[var(--teal)]/20 text-[var(--teal-light)] animate-pulse'
+                        : 'border-[var(--border)] bg-transparent text-[var(--text-muted)]'
+                    }`}
+                  >
+                    {i < loadingStage ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <span className="text-[10px] font-bold">{i + 1}</span>
+                    )}
+                  </div>
+                  {i < LOADING_STAGES.length - 1 && (
+                    <div className="hidden" />
+                  )}
+                </div>
+              ))}
+            </div>
+
             <div className="space-y-3">
               {LOADING_STAGES.map((stage, i) => (
                 <div
@@ -327,7 +412,7 @@ function UploadBox({ side, fileInfo, inputRef, onFile, onClear }: {
               </svg>
             </div>
             <p className="text-sm text-[var(--text-secondary)]">
-              Drag & drop or <span className="text-[var(--teal-light)] font-medium">browse</span>
+              Drag &amp; drop or <span className="text-[var(--teal-light)] font-medium">browse</span>
             </p>
             <p className="text-xs text-[var(--text-muted)]">
               e.g. 035_TouchNose_{side}Wrist.txt

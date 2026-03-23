@@ -160,6 +160,14 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out forwards;
@@ -169,6 +177,9 @@
 }
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
 
 /* Stagger children */
@@ -224,4 +235,40 @@
     linear-gradient(rgba(13, 148, 136, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(13, 148, 136, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
+}
+
+/* Stat card */
+.stat-card {
+  @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 text-center relative overflow-hidden;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--teal-dark), var(--teal-light), var(--teal-dark));
+  opacity: 0.6;
+}
+.stat-card:hover {
+  @apply border-[var(--teal)];
+  box-shadow: 0 0 30px -5px rgba(13, 148, 136, 0.15);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Tab buttons */
+.tab-btn {
+  @apply px-4 py-1.5 rounded-lg text-xs font-semibold transition-all bg-[var(--surface-light)] text-[var(--text-muted)] hover:text-white;
+}
+.tab-btn-active {
+  @apply px-4 py-1.5 rounded-lg text-xs font-semibold transition-all bg-[var(--teal)] text-white;
+}
+
+/* File guide helper box */
+.file-guide {
+  @apply bg-[var(--surface-light)] border border-[var(--border-light)] rounded-xl p-4 text-sm text-[var(--text-secondary)] space-y-2;
+  animation: fadeInUp 0.3s ease-out;
 }

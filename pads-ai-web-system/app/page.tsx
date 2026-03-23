@@ -8,10 +8,11 @@ export default function Home() {
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--navy-dark)]" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[var(--teal)] opacity-[0.04] rounded-full blur-[120px]" />
+        <div className="absolute top-40 right-10 w-[300px] h-[300px] bg-cyan-500 opacity-[0.03] rounded-full blur-[100px]" />
 
         <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-32">
           <div className="max-w-3xl mx-auto text-center stagger-children">
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[var(--teal)]/10 border border-[var(--teal)]/20 mb-8">
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[var(--teal)]/10 border border-[var(--teal)]/20 mb-8 animate-float">
               <span className="w-2 h-2 rounded-full bg-[var(--teal)] animate-pulse" />
               <span className="text-xs font-semibold text-[var(--teal-light)] tracking-wide">AI-Powered Detection</span>
             </div>
@@ -91,6 +92,71 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Model Stats — NEW */}
+      <section className="py-16 px-6 bg-[var(--surface)]/30">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-white mb-3">Model Performance</h2>
+            <p className="text-[var(--text-secondary)] max-w-md mx-auto text-sm">
+              Trained and validated on the PADS (Parkinson&apos;s And Differential-diagnosis Sensor) dataset.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 stagger-children">
+            {[
+              {
+                value: '~73%',
+                label: 'Model Accuracy',
+                sub: 'Avg. F1 across tasks',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                ),
+              },
+              {
+                value: '322',
+                label: 'Dataset Subjects',
+                sub: 'HC · PD · DD patients',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                ),
+              },
+              {
+                value: '10',
+                label: 'Supported Tasks',
+                sub: 'Motor assessment tasks',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                ),
+              },
+            ].map((stat) => (
+              <div key={stat.label} className="stat-card group">
+                <div className="w-10 h-10 rounded-lg bg-[var(--teal)]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[var(--teal)]/20 transition-colors">
+                  {stat.icon}
+                </div>
+                <p className="text-4xl font-black mb-1 gradient-text">{stat.value}</p>
+                <p className="text-sm font-bold text-white mb-1">{stat.label}</p>
+                <p className="text-xs text-[var(--text-muted)]">{stat.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-xs text-[var(--text-muted)] mt-8">
+            * Accuracy varies by task and cohort. Results are for research and screening purposes only.
+          </p>
         </div>
       </section>
 

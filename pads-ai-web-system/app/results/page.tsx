@@ -37,6 +37,22 @@ export default function ResultsPage() {
   // Safe diagnosis lookup (supports both short codes and full labels)
   const diagnosis = DIAGNOSIS_CONFIG[result.prediction] || DIAGNOSIS_CONFIG.HC;
 
+  const diagnosisColor = 
+    result.prediction === "HC" || 
+    result.prediction?.includes("Healthy") 
+      ? "#10B981"  
+    : result.prediction === "PD" || 
+      result.prediction?.includes("Parkinson")
+      ? "#EF4444"  
+    : "#F59E0B";
+
+  const riskLevel = 
+    result.confidence < 0.5 
+      ? { label: "Low Risk", color: "#10B981" }
+    : result.confidence < 0.7 
+      ? { label: "Moderate Risk", color: "#F59E0B" }
+    : { label: "High Risk", color: "#EF4444" };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] py-12 px-6">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -57,7 +73,7 @@ export default function ResultsPage() {
               className="btn-primary text-sm px-6 py-2"
               id="export-pdf-btn"
             >
-              Download PDF Report
+              Download Report
             </button>
           </div>
         </div>
@@ -65,14 +81,23 @@ export default function ResultsPage() {
         {/* Top row: Diagnosis + Confidence */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
           {/* Diagnosis Badge */}
-          <div className="card flex flex-col items-center justify-center py-8 space-y-4">
+          <div
+            className="card flex flex-col items-center justify-center py-8 space-y-4"
+            style={{
+              borderColor: `${diagnosis.color}33`,
+              boxShadow: `0 0 30px -8px ${diagnosis.color}30`,
+            }}
+          >
             <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">AI Diagnosis</p>
-            <div className={diagnosis.bgClass}>
+            <div className={diagnosis.bgClass} style={{ color: diagnosisColor }}>
               {diagnosis.label}
             </div>
-            <p className="text-xs text-[var(--text-muted)]">
-              Prediction confidence: {(result.confidence * 100).toFixed(1)}%
-            </p>
+            <div className="text-xs text-[var(--text-muted)] space-y-1 text-center">
+              <p>Prediction confidence: {(result.confidence * 100).toFixed(1)}%</p>
+              <p style={{ color: riskLevel.color }} className="font-semibold mt-2">
+                ● {riskLevel.label}
+              </p>
+            </div>
           </div>
 
           {/* Confidence Gauge */}
@@ -107,16 +132,44 @@ export default function ResultsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
           <ProbabilityBar
             title="HC vs PD (Task 1)"
-            labels={['HC (Healthy)', 'PD (Parkinson\'s)']}
+            labels={['HC (Healthy)', "PD (Parkinson's)"]}
             values={result.probabilities.hc_vs_pd}
             colors={['#22C55E', '#EF4444']}
           />
           <ProbabilityBar
             title="PD vs DD (Task 2)"
-            labels={['PD (Parkinson\'s)', 'DD (Differential)']}
+            labels={["PD (Parkinson's)", 'DD (Differential)']}
             values={result.probabilities.pd_vs_dd}
             colors={['#EF4444', '#F97316']}
           />
+        </div>
+
+        {/* Key Motion Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <div className="card space-y-2">
+            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tremor Power</h4>
+            <p className="text-2xl font-black text-white">
+              {/* @ts-ignore - gracefully handle if features data is missing */}
+              {result.features?.tremor_power ?? "N/A"}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">3-8 Hz band power</p>
+          </div>
+          <div className="card space-y-2">
+            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Jerk RMS</h4>
+            <p className="text-2xl font-black text-white">
+              {/* @ts-ignore */}
+              {result.features?.jerk_rms ?? "N/A"}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">Movement smoothness</p>
+          </div>
+          <div className="card space-y-2">
+            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Signal Variability</h4>
+            <p className="text-2xl font-black text-white">
+              {/* @ts-ignore */}
+              {result.features?.std_dev ?? "N/A"}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">Motion variability</p>
+          </div>
         </div>
 
         {/* Signal Visualization */}
@@ -130,16 +183,19 @@ export default function ResultsPage() {
 
         {/* AI Clinical Report */}
         <div className="card animate-fade-in-up" style={{ animationDelay: '350ms' }}>
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-[var(--teal)]/10 flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-              </svg>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg bg-[var(--teal)]/10 flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">AI Clinical Analysis</h3>
+                <p className="text-xs text-[var(--text-muted)]">Generated by Gemini AI</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-bold text-white">AI Clinical Analysis</h3>
-              <p className="text-xs text-[var(--text-muted)]">Generated by Gemini AI</p>
-            </div>
+            <CopyReportButton text={result.report} />
           </div>
 
           <div className="prose prose-invert prose-sm max-w-none">
@@ -160,6 +216,58 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ---- Copy Report Button ----
+function CopyReportButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback for non-secure contexts
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      id="copy-report-btn"
+      className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 border ${
+        copied
+          ? 'border-[var(--success)] bg-[var(--success)]/10 text-[var(--success)]'
+          : 'border-[var(--border)] bg-[var(--surface-light)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--teal)]'
+      }`}
+    >
+      {copied ? (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>Copied!</span>
+        </>
+      ) : (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span>Copy Report</span>
+        </>
+      )}
+    </button>
   );
 }
 
@@ -248,13 +356,19 @@ function ProbabilityBar({
   );
 }
 
-// ---- Signal Chart ----
+// ---- Signal Chart (all 6 channels, Acc + Gyro tabs) ----
 function SignalVisualization({ leftData, rightData }: { leftData: number[][]; rightData: number[][] }) {
   const [selectedSide, setSelectedSide] = useState<'left' | 'right'>('left');
+  const [selectedGroup, setSelectedGroup] = useState<'acc' | 'gyro'>('acc');
+
   const data = selectedSide === 'left' ? leftData : rightData;
 
   const SENSOR_LABELS = ['AccX', 'AccY', 'AccZ', 'GyrX', 'GyrY', 'GyrZ'];
-  const COLORS = ['#0D9488', '#14B8A6', '#06B6D4', '#EF4444', '#F97316', '#EAB308'];
+  const ACC_COLORS  = ['#0D9488', '#14B8A6', '#06B6D4'];
+  const GYRO_COLORS = ['#EF4444', '#F97316', '#EAB308'];
+
+  const activeLabels = selectedGroup === 'acc' ? SENSOR_LABELS.slice(0, 3) : SENSOR_LABELS.slice(3);
+  const activeColors = selectedGroup === 'acc' ? ACC_COLORS : GYRO_COLORS;
 
   const chartData = useMemo(() => {
     // Downsample to max 200 points
@@ -276,21 +390,38 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
 
   return (
     <div className="space-y-4">
-      {/* Side toggle */}
-      <div className="flex items-center space-x-2">
-        {(['left', 'right'] as const).map(side => (
+      {/* Controls row */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Side toggle */}
+        <div className="flex items-center space-x-2">
+          {(['left', 'right'] as const).map(side => (
+            <button
+              key={side}
+              onClick={() => setSelectedSide(side)}
+              className={selectedSide === side ? 'tab-btn-active' : 'tab-btn'}
+            >
+              {side === 'left' ? 'Left Wrist' : 'Right Wrist'}
+            </button>
+          ))}
+        </div>
+
+        {/* Sensor group toggle */}
+        <div className="flex items-center space-x-2">
           <button
-            key={side}
-            onClick={() => setSelectedSide(side)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              selectedSide === side
-                ? 'bg-[var(--teal)] text-white'
-                : 'bg-[var(--surface-light)] text-[var(--text-muted)] hover:text-white'
-            }`}
+            onClick={() => setSelectedGroup('acc')}
+            className={selectedGroup === 'acc' ? 'tab-btn-active' : 'tab-btn'}
+            id="acc-tab"
           >
-            {side === 'left' ? 'Left Wrist' : 'Right Wrist'}
+            Accelerometer
           </button>
-        ))}
+          <button
+            onClick={() => setSelectedGroup('gyro')}
+            className={selectedGroup === 'gyro' ? 'tab-btn-active' : 'tab-btn'}
+            id="gyro-tab"
+          >
+            Gyroscope
+          </button>
+        </div>
       </div>
 
       {/* Chart */}
@@ -314,12 +445,12 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
               }}
             />
             <Legend wrapperStyle={{ fontSize: '11px' }} />
-            {SENSOR_LABELS.slice(0, 3).map((label, i) => (
+            {activeLabels.map((label, i) => (
               <Line
                 key={label}
                 type="monotone"
                 dataKey={label}
-                stroke={COLORS[i]}
+                stroke={activeColors[i]}
                 dot={false}
                 strokeWidth={1.5}
               />
@@ -327,56 +458,76 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <p className="text-xs text-[var(--text-muted)]">
+        Showing {selectedGroup === 'acc' ? 'Accelerometer' : 'Gyroscope'} channels (AccX/Y/Z or GyrX/Y/Z) •{' '}
+        {selectedSide === 'left' ? 'Left' : 'Right'} Wrist • downsampled to ≤200 points
+      </p>
     </div>
   );
 }
 
-// ---- PDF Export (simple) ----
+// ---- PDF Export (improved formatting) ----
 function handleExportPDF(result: SensorPredictResult) {
   const diagnosis = DIAGNOSIS_CONFIG[result.prediction] || DIAGNOSIS_CONFIG.HC;
+  const now = new Date().toISOString();
+  const separator = '─'.repeat(52);
+
   const content = `
-NEUROPD — CLINICAL ANALYSIS REPORT
-${'='.repeat(50)}
+╔══════════════════════════════════════════════════════╗
+║          NeuroPD — CLINICAL ANALYSIS REPORT          ║
+╚══════════════════════════════════════════════════════╝
 
-DIAGNOSIS: ${diagnosis.label} (${result.prediction})
-CONFIDENCE: ${(result.confidence * 100).toFixed(1)}%
+Generated : ${now}
+System    : NeuroPD Transformer v1.0 • PADS Dataset
+ 
+${separator}
+PATIENT INFORMATION
+${separator}
+Patient ID       : ${result.metadata.patient_id}
+Task Performed   : ${result.metadata.task}
+Windows Analyzed : ${result.metadata.windows_analysed}
+Left Wrist File  : ${result.metadata.left_file}
+Right Wrist File : ${result.metadata.right_file}
 
-PATIENT: ${result.metadata.patient_id}
-TASK: ${result.metadata.task}
-WINDOWS ANALYZED: ${result.metadata.windows_analysed}
+${separator}
+PRIMARY DIAGNOSIS
+${separator}
+Diagnosis   : ${diagnosis.label} (${result.prediction})
+Confidence  : ${(result.confidence * 100).toFixed(1)}%
 
+${separator}
 PROBABILITY ANALYSIS
---------------------
-HC vs PD:
-  HC: ${(result.probabilities.hc_vs_pd[0] * 100).toFixed(1)}%
-  PD: ${(result.probabilities.hc_vs_pd[1] * 100).toFixed(1)}%
+${separator}
+Task 1 — Healthy Control vs Parkinson's Disease:
+  HC (Healthy Control)    : ${(result.probabilities.hc_vs_pd[0] * 100).toFixed(2)}%
+  PD (Parkinson's Disease): ${(result.probabilities.hc_vs_pd[1] * 100).toFixed(2)}%
 
-PD vs DD:
-  PD: ${(result.probabilities.pd_vs_dd[0] * 100).toFixed(1)}%
-  DD: ${(result.probabilities.pd_vs_dd[1] * 100).toFixed(1)}%
+Task 2 — Parkinson's Disease vs Differential Diagnosis:
+  PD (Parkinson's Disease): ${(result.probabilities.pd_vs_dd[0] * 100).toFixed(2)}%
+  DD (Differential Diag.) : ${(result.probabilities.pd_vs_dd[1] * 100).toFixed(2)}%
 
-FILES:
-  Left:  ${result.metadata.left_file}
-  Right: ${result.metadata.right_file}
-
-AI CLINICAL REPORT
-------------------
+${separator}
+AI CLINICAL ANALYSIS  (Gemini AI)
+${separator}
 ${result.report}
 
+${separator}
 DISCLAIMER
-----------
-This AI analysis is for research and screening purposes only.
-It does not constitute a medical diagnosis. Consult a qualified
-neurologist for clinical decisions.
+${separator}
+This AI analysis is for RESEARCH AND SCREENING PURPOSES ONLY.
+It does NOT constitute a medical diagnosis. Consult a qualified
+neurologist for all clinical decisions.
 
-Generated by NeuroPD — ${new Date().toISOString()}
+NeuroPD Transformer v1.0 — Powered by PADS Dataset
+Report generated: ${now}
   `.trim();
 
-  const blob = new Blob([content], { type: 'text/plain' });
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `NeuroPD_Report_${result.metadata.patient_id}_${result.metadata.task}.txt`;
+  a.download = `NeuroPD_Report_${result.metadata.patient_id}_${result.metadata.task}_${new Date().toISOString().split('T')[0]}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
+import MobileNav from "@/components/MobileNav";
 
 export const metadata: Metadata = {
   title: "NeuroPD — Parkinson's Detection System",
@@ -34,6 +35,7 @@ export default function RootLayout({
               </div>
             </Link>
 
+            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-1">
               <Link href="/" className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg transition-all">
                 Home
@@ -44,10 +46,12 @@ export default function RootLayout({
             </nav>
 
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[var(--surface-light)] border border-[var(--border)]">
+              <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[var(--surface-light)] border border-[var(--border)]">
                 <span className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
                 <span className="text-xs font-medium text-[var(--text-secondary)]">AI Model Active</span>
               </div>
+              {/* Mobile hamburger */}
+              <MobileNav />
             </div>
           </div>
         </header>
