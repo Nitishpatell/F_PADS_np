@@ -3,14 +3,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SensorPredictResult, DIAGNOSIS_CONFIG, DiagnosisLabel } from '@/lib/types';
+import { DIAGNOSIS_CONFIG } from '@/lib/types';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
 export default function ResultsPage() {
   const router = useRouter();
-  const [result, setResult] = useState<SensorPredictResult | null>(null);
+  const [result, setResult] = useState<any | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function ResultsPage() {
     setMounted(true);
   }, [router]);
 
-  if (!result || !mounted) {
+  if (!mounted) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -34,22 +34,54 @@ export default function ResultsPage() {
     );
   }
 
+  if (!result || !result.patient_id) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        color: 'white',
+        textAlign: 'center',
+        gap: '16px'
+      }}>
+        <h2>No results found</h2>
+        <p style={{color: '#94A3B8'}}>
+          Please upload sensor files to analyze
+        </p>
+        <a href="/analyze" style={{
+          background: '#10B981',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          fontWeight: '600'
+        }}>
+          Go to Analyze →
+        </a>
+      </div>
+    );
+  }
+
+  try {
+
   // Safe diagnosis lookup (supports both short codes and full labels)
-  const diagnosis = DIAGNOSIS_CONFIG[result.prediction] || DIAGNOSIS_CONFIG.HC;
+  const diagnosis = DIAGNOSIS_CONFIG[result?.diagnosis] || DIAGNOSIS_CONFIG.HC;
 
   const diagnosisColor = 
-    result.prediction === "HC" || 
-    result.prediction?.includes("Healthy") 
+    result?.diagnosis === "HC" || 
+    result?.diagnosis?.includes("Healthy") 
       ? "#10B981"  
-    : result.prediction === "PD" || 
-      result.prediction?.includes("Parkinson")
+    : result?.diagnosis === "PD" || 
+      result?.diagnosis?.includes("Parkinson")
       ? "#EF4444"  
     : "#F59E0B";
 
   const riskLevel = 
-    result.confidence < 0.5 
+    (result?.confidence ?? 0) < 0.5 
       ? { label: "Low Risk", color: "#10B981" }
-    : result.confidence < 0.7 
+    : (result?.confidence ?? 0) < 0.7 
       ? { label: "Moderate Risk", color: "#F59E0B" }
     : { label: "High Risk", color: "#EF4444" };
 
@@ -61,7 +93,7 @@ export default function ResultsPage() {
           <div>
             <h1 className="text-3xl font-bold text-white mb-1">Results Dashboard</h1>
             <p className="text-[var(--text-secondary)]">
-              Analysis for Patient {result.metadata.patient_id} — {result.metadata.task}
+              Analysis for Patient {result?.patient_id ?? "N/A"} — {result?.task ?? "N/A"}
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -93,7 +125,7 @@ export default function ResultsPage() {
               {diagnosis.label}
             </div>
             <div className="text-xs text-[var(--text-muted)] space-y-1 text-center">
-              <p>Prediction confidence: {(result.confidence * 100).toFixed(1)}%</p>
+              <p>Prediction confidence: {((result?.confidence ?? 0) * 100).toFixed(1)}%</p>
               <p style={{ color: riskLevel.color }} className="font-semibold mt-2">
                 ● {riskLevel.label}
               </p>
@@ -103,7 +135,7 @@ export default function ResultsPage() {
           {/* Confidence Gauge */}
           <div className="card flex flex-col items-center justify-center py-8">
             <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Confidence Score</p>
-            <ConfidenceGauge value={result.confidence} color={diagnosis.color} />
+            <ConfidenceGauge value={result?.confidence ?? 0} color={diagnosis.color} />
           </div>
 
           {/* Metadata */}
@@ -111,11 +143,11 @@ export default function ResultsPage() {
             <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Analysis Metadata</p>
             <div className="space-y-3">
               {[
-                { label: 'Patient ID', value: result.metadata.patient_id },
-                { label: 'Task', value: result.metadata.task },
-                { label: 'Left File', value: result.metadata.left_file },
-                { label: 'Right File', value: result.metadata.right_file },
-                { label: 'Windows Analyzed', value: result.metadata.windows_analysed.toString() },
+                { label: 'Patient ID', value: result?.patient_id ?? 'N/A' },
+                { label: 'Task', value: result?.task ?? 'N/A' },
+                { label: 'Left File', value: result?.left_file ?? 'N/A' },
+                { label: 'Right File', value: result?.right_file ?? 'N/A' },
+                { label: 'Windows Analyzed', value: result?.windows_analysed?.toString() ?? 'N/A' },
               ].map(item => (
                 <div key={item.label} className="flex justify-between items-center">
                   <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
@@ -133,51 +165,50 @@ export default function ResultsPage() {
           <ProbabilityBar
             title="HC vs PD (Task 1)"
             labels={['HC (Healthy)', "PD (Parkinson's)"]}
-            values={result.probabilities.hc_vs_pd}
+            values={[result?.hc_prob ?? 0, result?.pd_prob ?? 0]}
             colors={['#22C55E', '#EF4444']}
           />
           <ProbabilityBar
             title="PD vs DD (Task 2)"
             labels={["PD (Parkinson's)", 'DD (Differential)']}
-            values={result.probabilities.pd_vs_dd}
+            values={[result?.pd_prob ?? 0, result?.dd_prob ?? 0]}
             colors={['#EF4444', '#F97316']}
           />
         </div>
 
         {/* Key Motion Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-          <div className="card space-y-2">
-            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tremor Power</h4>
-            <p className="text-2xl font-black text-white">
-              {/* @ts-ignore - gracefully handle if features data is missing */}
-              {result.features?.tremor_power ?? "N/A"}
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">3-8 Hz band power</p>
+        {result?.features && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="card space-y-2">
+              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tremor Power</h4>
+              <p className="text-2xl font-black text-white">
+                {result?.features?.tremor_power ?? "N/A"}
+              </p>
+              <p className="text-xs text-[var(--text-secondary)]">3-8 Hz band power</p>
+            </div>
+            <div className="card space-y-2">
+              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Jerk RMS</h4>
+              <p className="text-2xl font-black text-white">
+                {result?.features?.jerk_rms ?? "N/A"}
+              </p>
+              <p className="text-xs text-[var(--text-secondary)]">Movement smoothness</p>
+            </div>
+            <div className="card space-y-2">
+              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Signal Variability</h4>
+              <p className="text-2xl font-black text-white">
+                {result?.features?.std_dev ?? "N/A"}
+              </p>
+              <p className="text-xs text-[var(--text-secondary)]">Motion variability</p>
+            </div>
           </div>
-          <div className="card space-y-2">
-            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Jerk RMS</h4>
-            <p className="text-2xl font-black text-white">
-              {/* @ts-ignore */}
-              {result.features?.jerk_rms ?? "N/A"}
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">Movement smoothness</p>
-          </div>
-          <div className="card space-y-2">
-            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Signal Variability</h4>
-            <p className="text-2xl font-black text-white">
-              {/* @ts-ignore */}
-              {result.features?.std_dev ?? "N/A"}
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">Motion variability</p>
-          </div>
-        </div>
+        )}
 
         {/* Signal Visualization */}
         <div className="card animate-fade-in-up" style={{ animationDelay: '250ms' }}>
           <h3 className="text-sm font-semibold text-white mb-4">Signal Visualization</h3>
           <SignalVisualization
-            leftData={result.signal_preview.left}
-            rightData={result.signal_preview.right}
+            leftData={result?.signal_preview?.left ?? []}
+            rightData={result?.signal_preview?.right ?? []}
           />
         </div>
 
@@ -195,7 +226,7 @@ export default function ResultsPage() {
                 <p className="text-xs text-[var(--text-muted)]">Generated by Gemini AI</p>
               </div>
             </div>
-            <CopyReportButton text={result.report} />
+            <CopyReportButton text={result?.gemini_report ?? ''} />
           </div>
 
           <div className="prose prose-invert prose-sm max-w-none">
@@ -203,7 +234,7 @@ export default function ResultsPage() {
               className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap"
               style={{ lineHeight: '1.8' }}
             >
-              {result.report}
+              {result?.gemini_report ?? 'No report available.'}
             </div>
           </div>
 
@@ -217,6 +248,17 @@ export default function ResultsPage() {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error(error);
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <p className="text-xl text-white">Results format changed or data is incomplete.</p>
+        <Link href="/analyze" className="text-[var(--teal)] hover:underline">
+          Go back to Analysis
+        </Link>
+      </div>
+    );
+  }
 }
 
 // ---- Copy Report Button ----
@@ -372,6 +414,7 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
 
   const chartData = useMemo(() => {
     // Downsample to max 200 points
+    if (!data || !data.length) return [];
     const step = Math.max(1, Math.floor(data.length / 200));
     return data
       .filter((_, i) => i % step === 0)
@@ -426,37 +469,43 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
 
       {/* Chart */}
       <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis
-              dataKey="index"
-              stroke="var(--text-muted)"
-              tick={{ fontSize: 10 }}
-              label={{ value: 'Sample', position: 'bottom', offset: -5, fill: 'var(--text-muted)', fontSize: 10 }}
-            />
-            <YAxis stroke="var(--text-muted)" tick={{ fontSize: 10 }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: '11px' }} />
-            {activeLabels.map((label, i) => (
-              <Line
-                key={label}
-                type="monotone"
-                dataKey={label}
-                stroke={activeColors[i]}
-                dot={false}
-                strokeWidth={1.5}
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis
+                dataKey="index"
+                stroke="var(--text-muted)"
+                tick={{ fontSize: 10 }}
+                label={{ value: 'Sample', position: 'bottom', offset: -5, fill: 'var(--text-muted)', fontSize: 10 }}
               />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+              <YAxis stroke="var(--text-muted)" tick={{ fontSize: 10 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: '11px' }} />
+              {activeLabels.map((label, i) => (
+                <Line
+                  key={label}
+                  type="monotone"
+                  dataKey={label}
+                  stroke={activeColors[i]}
+                  dot={false}
+                  strokeWidth={1.5}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)] text-sm">
+            Signal preview not available.
+          </div>
+        )}
       </div>
 
       <p className="text-xs text-[var(--text-muted)]">
@@ -468,66 +517,66 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
 }
 
 // ---- PDF Export (improved formatting) ----
-function handleExportPDF(result: SensorPredictResult) {
-  const diagnosis = DIAGNOSIS_CONFIG[result.prediction] || DIAGNOSIS_CONFIG.HC;
+function handleExportPDF(result: any) {
+  const diagnosis = DIAGNOSIS_CONFIG[result?.diagnosis] || DIAGNOSIS_CONFIG.HC;
   const now = new Date().toISOString();
   const separator = '─'.repeat(52);
 
-  const content = `
+  const content = \`
 ╔══════════════════════════════════════════════════════╗
 ║          NeuroPD — CLINICAL ANALYSIS REPORT          ║
 ╚══════════════════════════════════════════════════════╝
 
-Generated : ${now}
+Generated : \${now}
 System    : NeuroPD Transformer v1.0 • PADS Dataset
  
-${separator}
+\${separator}
 PATIENT INFORMATION
-${separator}
-Patient ID       : ${result.metadata.patient_id}
-Task Performed   : ${result.metadata.task}
-Windows Analyzed : ${result.metadata.windows_analysed}
-Left Wrist File  : ${result.metadata.left_file}
-Right Wrist File : ${result.metadata.right_file}
+\${separator}
+Patient ID       : \${result?.patient_id ?? 'N/A'}
+Task Performed   : \${result?.task ?? 'N/A'}
+Windows Analyzed : \${result?.windows_analysed ?? 'N/A'}
+Left Wrist File  : \${result?.left_file ?? 'N/A'}
+Right Wrist File : \${result?.right_file ?? 'N/A'}
 
-${separator}
+\${separator}
 PRIMARY DIAGNOSIS
-${separator}
-Diagnosis   : ${diagnosis.label} (${result.prediction})
-Confidence  : ${(result.confidence * 100).toFixed(1)}%
+\${separator}
+Diagnosis   : \${diagnosis.label} (\${result?.diagnosis ?? 'Unknown'})
+Confidence  : \${((result?.confidence ?? 0) * 100).toFixed(1)}%
 
-${separator}
+\${separator}
 PROBABILITY ANALYSIS
-${separator}
+\${separator}
 Task 1 — Healthy Control vs Parkinson's Disease:
-  HC (Healthy Control)    : ${(result.probabilities.hc_vs_pd[0] * 100).toFixed(2)}%
-  PD (Parkinson's Disease): ${(result.probabilities.hc_vs_pd[1] * 100).toFixed(2)}%
+  HC (Healthy Control)    : \${((result?.hc_prob ?? 0) * 100).toFixed(2)}%
+  PD (Parkinson's Disease): \${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
 
 Task 2 — Parkinson's Disease vs Differential Diagnosis:
-  PD (Parkinson's Disease): ${(result.probabilities.pd_vs_dd[0] * 100).toFixed(2)}%
-  DD (Differential Diag.) : ${(result.probabilities.pd_vs_dd[1] * 100).toFixed(2)}%
+  PD (Parkinson's Disease): \${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
+  DD (Differential Diag.) : \${((result?.dd_prob ?? 0) * 100).toFixed(2)}%
 
-${separator}
+\${separator}
 AI CLINICAL ANALYSIS  (Gemini AI)
-${separator}
-${result.report}
+\${separator}
+\${result?.gemini_report ?? 'No report provided by the analysis system.'}
 
-${separator}
+\${separator}
 DISCLAIMER
-${separator}
+\${separator}
 This AI analysis is for RESEARCH AND SCREENING PURPOSES ONLY.
 It does NOT constitute a medical diagnosis. Consult a qualified
 neurologist for all clinical decisions.
 
 NeuroPD Transformer v1.0 — Powered by PADS Dataset
-Report generated: ${now}
-  `.trim();
+Report generated: \${now}
+  \`.trim();
 
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `NeuroPD_Report_${result.metadata.patient_id}_${result.metadata.task}_${new Date().toISOString().split('T')[0]}.txt`;
+  a.download = \`NeuroPD_Report_\${result?.patient_id ?? 'Unknown'}_{\${result?.task ?? 'Unknown'}_\${new Date().toISOString().split('T')[0]}.txt\`;
   a.click();
   URL.revokeObjectURL(url);
 }
