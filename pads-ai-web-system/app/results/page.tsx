@@ -37,18 +37,18 @@ export default function ResultsPage() {
   if (!result || !result.patient_id) {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '60vh',
-        color: 'white',
         textAlign: 'center',
-        gap: '16px'
+        padding: '80px 24px',
+        color: 'white'
       }}>
-        <h2>No results found</h2>
-        <p style={{color: '#94A3B8'}}>
-          Please upload sensor files to analyze
+        <h2 style={{marginBottom: '16px'}}>
+          No results found
+        </h2>
+        <p style={{
+          color: '#94A3B8',
+          marginBottom: '24px'
+        }}>
+          Please upload sensor files first
         </p>
         <a href="/analyze" style={{
           background: '#10B981',
@@ -177,7 +177,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Key Motion Features */}
-        {result?.features && (
+        {result?.features ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <div className="card space-y-2">
               <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tremor Power</h4>
@@ -201,7 +201,7 @@ export default function ResultsPage() {
               <p className="text-xs text-[var(--text-secondary)]">Motion variability</p>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Signal Visualization */}
         <div className="card animate-fade-in-up" style={{ animationDelay: '250ms' }}>
@@ -522,61 +522,61 @@ function handleExportPDF(result: any) {
   const now = new Date().toISOString();
   const separator = '─'.repeat(52);
 
-  const content = \`
+  const content = `
 ╔══════════════════════════════════════════════════════╗
 ║          NeuroPD — CLINICAL ANALYSIS REPORT          ║
 ╚══════════════════════════════════════════════════════╝
 
-Generated : \${now}
+Generated : ${now}
 System    : NeuroPD Transformer v1.0 • PADS Dataset
  
-\${separator}
+${separator}
 PATIENT INFORMATION
-\${separator}
-Patient ID       : \${result?.patient_id ?? 'N/A'}
-Task Performed   : \${result?.task ?? 'N/A'}
-Windows Analyzed : \${result?.windows_analysed ?? 'N/A'}
-Left Wrist File  : \${result?.left_file ?? 'N/A'}
-Right Wrist File : \${result?.right_file ?? 'N/A'}
+${separator}
+Patient ID       : ${result?.patient_id ?? 'N/A'}
+Task Performed   : ${result?.task ?? 'N/A'}
+Windows Analyzed : ${result?.windows_analysed ?? 'N/A'}
+Left Wrist File  : ${result?.left_file ?? 'N/A'}
+Right Wrist File : ${result?.right_file ?? 'N/A'}
 
-\${separator}
+${separator}
 PRIMARY DIAGNOSIS
-\${separator}
-Diagnosis   : \${diagnosis.label} (\${result?.diagnosis ?? 'Unknown'})
-Confidence  : \${((result?.confidence ?? 0) * 100).toFixed(1)}%
+${separator}
+Diagnosis   : ${diagnosis.label} (${result?.diagnosis ?? 'Unknown'})
+Confidence  : ${((result?.confidence ?? 0) * 100).toFixed(1)}%
 
-\${separator}
+${separator}
 PROBABILITY ANALYSIS
-\${separator}
+${separator}
 Task 1 — Healthy Control vs Parkinson's Disease:
-  HC (Healthy Control)    : \${((result?.hc_prob ?? 0) * 100).toFixed(2)}%
-  PD (Parkinson's Disease): \${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
+  HC (Healthy Control)    : ${((result?.hc_prob ?? 0) * 100).toFixed(2)}%
+  PD (Parkinson's Disease): ${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
 
 Task 2 — Parkinson's Disease vs Differential Diagnosis:
-  PD (Parkinson's Disease): \${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
-  DD (Differential Diag.) : \${((result?.dd_prob ?? 0) * 100).toFixed(2)}%
+  PD (Parkinson's Disease): ${((result?.pd_prob ?? 0) * 100).toFixed(2)}%
+  DD (Differential Diag.) : ${((result?.dd_prob ?? 0) * 100).toFixed(2)}%
 
-\${separator}
+${separator}
 AI CLINICAL ANALYSIS  (Gemini AI)
-\${separator}
-\${result?.gemini_report ?? 'No report provided by the analysis system.'}
+${separator}
+${result?.gemini_report ?? 'No report provided by the analysis system.'}
 
-\${separator}
+${separator}
 DISCLAIMER
-\${separator}
+${separator}
 This AI analysis is for RESEARCH AND SCREENING PURPOSES ONLY.
 It does NOT constitute a medical diagnosis. Consult a qualified
 neurologist for all clinical decisions.
 
 NeuroPD Transformer v1.0 — Powered by PADS Dataset
-Report generated: \${now}
-  \`.trim();
+Report generated: ${now}
+  `.trim();
 
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = \`NeuroPD_Report_\${result?.patient_id ?? 'Unknown'}_{\${result?.task ?? 'Unknown'}_\${new Date().toISOString().split('T')[0]}.txt\`;
+  a.download = `NeuroPD_Report_${result?.patient_id ?? 'Unknown'}_${result?.task ?? 'Unknown'}_${new Date().toISOString().split('T')[0]}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }
