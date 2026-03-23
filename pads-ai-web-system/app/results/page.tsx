@@ -14,14 +14,17 @@ export default function ResultsPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('neuropd_result');
-    if (!stored) {
-      router.push('/analyze');
-      return;
+    try {
+      const stored = sessionStorage.getItem('analysisResult');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setResult(parsed);
+      }
+    } catch(e) {
+      console.error('Failed to load result:', e);
     }
-    setResult(JSON.parse(stored));
     setMounted(true);
-  }, [router]);
+  }, []);
 
   if (!mounted) {
     return (

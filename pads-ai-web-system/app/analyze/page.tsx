@@ -157,8 +157,16 @@ export default function AnalyzePage() {
 
       clearInterval(stageTimer);
 
-      // Store result in sessionStorage and navigate
-      sessionStorage.setItem('neuropd_result', JSON.stringify(result));
+      // Save to sessionStorage (enriching with missing patient metadata for results page)
+      const dataToSave = {
+        ...result,
+        patient_id: leftFile.patientId,
+        task: selectedTask,
+        left_file: leftFile.file.name,
+        right_file: rightFile.file.name
+      };
+      
+      sessionStorage.setItem('analysisResult', JSON.stringify(dataToSave));
       router.push('/results');
     } catch (err: unknown) {
       clearInterval(stageTimer);
