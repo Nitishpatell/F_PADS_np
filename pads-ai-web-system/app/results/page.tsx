@@ -67,7 +67,8 @@ export default function ResultsPage() {
   try {
 
   // Safe diagnosis lookup (supports both short codes and full labels)
-  const diagnosis = DIAGNOSIS_CONFIG[result?.diagnosis] || DIAGNOSIS_CONFIG.HC;
+  const diagnosisKey = (result?.diagnosis as string) ?? 'HC';
+  const diagnosis = DIAGNOSIS_CONFIG[diagnosisKey as keyof typeof DIAGNOSIS_CONFIG] || DIAGNOSIS_CONFIG.HC;
 
   const diagnosisColor = 
     result?.diagnosis === "HC" || 
@@ -518,7 +519,8 @@ function SignalVisualization({ leftData, rightData }: { leftData: number[][]; ri
 
 // ---- PDF Export (improved formatting) ----
 function handleExportPDF(result: any) {
-  const diagnosis = DIAGNOSIS_CONFIG[result?.diagnosis] || DIAGNOSIS_CONFIG.HC;
+  const diagnosisKey = (result?.diagnosis as string) ?? 'HC';
+  const diagnosis = DIAGNOSIS_CONFIG[diagnosisKey as keyof typeof DIAGNOSIS_CONFIG] || DIAGNOSIS_CONFIG.HC;
   const now = new Date().toISOString();
   const separator = '─'.repeat(52);
 
