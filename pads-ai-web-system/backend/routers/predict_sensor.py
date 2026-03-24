@@ -157,5 +157,9 @@ async def predict_sensor(
         "pd_prob": round(result.task1_probs[1], 4),
         "dd_prob": round(result.task2_probs[1], 4),
         "features": result.features,
-        "gemini_report": explanation
+        "gemini_report": explanation,
+        "signal_preview": {
+            "left": left_signal.tolist(),
+            "right": right_signal.tolist()
+        }
     }
